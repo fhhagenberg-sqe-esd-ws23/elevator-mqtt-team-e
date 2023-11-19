@@ -60,7 +60,7 @@ public class Elevator {
         this.elevatorSpeed = 0;
         this.elevatorAccel = 0;
         this.floorButtonStatus = new boolean[numberOfFloors];
-        Arrays.fill(this.floorButtonStatus, true);
+        Arrays.fill(this.floorButtonStatus, false);
         this.servicedFloors = new boolean[numberOfFloors];
         Arrays.fill(this.servicedFloors, true);
         this.elevatorCapacity = elevatorCapacity;
