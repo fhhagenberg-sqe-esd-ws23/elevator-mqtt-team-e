@@ -167,7 +167,7 @@ public interface IElevator extends java.rmi.Remote {
 	 * @param floor - floor number whose Down button status is being retrieved 
 	 * @return returns boolean to indicate if button is active (true) or not (false)
 	 */
-	public boolean getFloorButtonDown(int floor) throws java.rmi.RemoteException; 
+	public boolean getFloorButtonDown(int floor) throws java.rmi.RemoteException;
 
 	/**
 	 * Provides the status of the Up button on specified floor (on/off). 
