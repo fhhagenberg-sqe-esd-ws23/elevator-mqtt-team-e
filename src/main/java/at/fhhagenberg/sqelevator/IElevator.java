@@ -102,7 +102,6 @@ public interface IElevator extends java.rmi.Remote {
 	 * Provides the current acceleration of the specified elevator in feet per sec^2. 
 	 * @param elevatorNumber - elevator number whose acceleration is being retrieved 
 	 * @return returns the acceleration of the indicated elevator where positive speed is acceleration and negative is deceleration
-
 	 */
 	public int getElevatorAccel(int elevatorNumber) throws java.rmi.RemoteException;
 
