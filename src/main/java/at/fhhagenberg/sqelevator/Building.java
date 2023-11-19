@@ -37,7 +37,13 @@ public class Building implements IElevator {
     }
 
     private void checkElevatorNumber(int elevatorNumber) throws IndexOutOfBoundsException {
-        if(elevatorNumber >= this.numberOfFloors) {
+        if(elevatorNumber >= this.numberOfElevators) {
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
+    private void checkFloorNumber(int floor) throws IndexOutOfBoundsException {
+        if(floor >= this.numberOfFloors) {
             throw new IndexOutOfBoundsException();
         }
     }
@@ -106,13 +112,14 @@ public class Building implements IElevator {
 
     @Override
     public boolean getFloorButtonDown(int floor) throws RemoteException {
-
-        return false;
+        checkFloorNumber(floor);
+        return this.floors.get(floor).isDownButtonPressed();
     }
 
     @Override
     public boolean getFloorButtonUp(int floor) throws RemoteException {
-        return false;
+        checkFloorNumber(floor);
+        return this.floors.get(floor).isUpButtonPressed();
     }
 
     @Override

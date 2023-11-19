@@ -3,7 +3,7 @@ package at.fhhagenberg.sqelevator;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ElevatorTest {
+public class BuldingTest {
     @Test
     public void testCreation() {
         Elevator e = new Elevator(1,10,5);

@@ -22,7 +22,7 @@ public class Floor {
     }
 
 
-    public void seDownPressed(boolean pressed) {
+    public void setDownPressed(boolean pressed) {
         this.downPressed = pressed;
     }
 }
