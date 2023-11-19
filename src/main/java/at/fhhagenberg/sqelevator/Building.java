@@ -2,6 +2,7 @@ package at.fhhagenberg.sqelevator;
 
 import java.rmi.RemoteException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,10 +46,14 @@ public class Building implements IElevator {
         this.numberOfElevators = numberOfElevators;
         this.clockTick = 0;
 
+        this.elevators = new ArrayList<Elevator>(numberOfElevators);
+        this.floors = new ArrayList<Floor>(numberOfFloors);
+
         // add elevators to building
         for(int i = 0; i < numberOfElevators; i++) {
             this.elevators.add(new Elevator(i, numberOfFloors, capacity));
         }
+
 
         for(int i = 0; i < numberOfFloors; i++) {
             this.floors.add(new Floor());
@@ -134,6 +139,7 @@ public class Building implements IElevator {
      */
     @Override
     public int getElevatorNum() throws RemoteException {
+        checkElevatorNumber(0);
         return this.numberOfElevators;
     }
 
