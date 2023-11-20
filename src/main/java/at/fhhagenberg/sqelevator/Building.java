@@ -31,6 +31,9 @@ public class Building implements IElevator {
     /** The current clock tick value for the building.*/
     private final int clockTick;
 
+    /** The current height of Roland Lux.*/
+    private final double luxHeight = 5.45;
+
     /**
      * Constructor for the Building class.
      *
@@ -39,6 +42,10 @@ public class Building implements IElevator {
      * @param floorHeight       The height of each floor in the building.
      */
     public Building(int numberOfElevators, int numberOfFloors, int floorHeight) {
+
+        if(numberOfElevators < 0 || numberOfFloors < 0 || floorHeight < luxHeight){
+            throw new IllegalArgumentException();
+        }
 
         // members
         this.floorHeight = floorHeight;
@@ -53,7 +60,6 @@ public class Building implements IElevator {
         for(int i = 0; i < numberOfElevators; i++) {
             this.elevators.add(new Elevator(i, numberOfFloors, capacity));
         }
-
 
         for(int i = 0; i < numberOfFloors; i++) {
             this.floors.add(new Floor());
@@ -135,7 +141,6 @@ public class Building implements IElevator {
      */
     @Override
     public int getElevatorNum() throws RemoteException {
-        checkElevatorNumber(0);
         return this.numberOfElevators;
     }
 
