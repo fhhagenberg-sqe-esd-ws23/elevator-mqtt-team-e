@@ -70,11 +70,11 @@ public class Building implements IElevator {
      * Checks if the elevator number is valid.
      *
      * @param elevatorNumber The number of the elevator to be checked.
-     * @throws IndexOutOfBoundsException if the elevator number is invalid.
+     * @throws IllegalArgumentException if the elevator number is invalid.
      */
-    private void checkElevatorNumber(int elevatorNumber) throws IndexOutOfBoundsException {
-        if(elevatorNumber >= this.numberOfElevators) {
-            throw new IndexOutOfBoundsException();
+    private void checkElevatorNumber(int elevatorNumber) throws IllegalArgumentException {
+        if(elevatorNumber < 0 || elevatorNumber >= this.numberOfElevators) {
+            throw new IllegalArgumentException();
         }
     }
 
@@ -82,11 +82,11 @@ public class Building implements IElevator {
      * Checks if the elevator number is valid.
      *
      * @param floor The number of the floor to be checked.
-     * @throws IndexOutOfBoundsException if the floor number is invalid.
+     * @throws IllegalArgumentException if the floor number is invalid.
      */
-    private void checkFloorNumber(int floor) throws IndexOutOfBoundsException {
-        if(floor >= this.numberOfFloors) {
-            throw new IndexOutOfBoundsException();
+    private void checkFloorNumber(int floor) throws IllegalArgumentException {
+        if(floor < 0 || floor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
     }
 
@@ -133,6 +133,7 @@ public class Building implements IElevator {
      */
     @Override
     public int getElevatorFloor(int elevatorNumber) throws RemoteException {
+        checkElevatorNumber(elevatorNumber);
         return this.elevators.get(elevatorNumber).getCurrentFloor();
     }
 
@@ -141,7 +142,7 @@ public class Building implements IElevator {
      */
     @Override
     public int getElevatorNum() throws RemoteException {
-        return this.numberOfElevators;
+        return this.elevators.size();
     }
 
     /**
@@ -211,7 +212,7 @@ public class Building implements IElevator {
      */
     @Override
     public int getFloorNum() throws RemoteException {
-        return this.numberOfFloors;
+        return this.floors.size();
     }
 
     /**

@@ -60,7 +60,6 @@ public class Elevator {
         this.elevatorSpeed = 0;
         this.elevatorAccel = 0;
         this.floorButtonStatus = new boolean[numberOfFloors];
-        Arrays.fill(this.floorButtonStatus, false);
         this.servicedFloors = new boolean[numberOfFloors];
         Arrays.fill(this.servicedFloors, true);
         this.elevatorCapacity = elevatorCapacity;
@@ -88,9 +87,10 @@ public class Elevator {
      * @param currentFloor The current floor of the elevator.
      */
     public void setCurrentFloor(int currentFloor) {
-        if(currentFloor > 0 && currentFloor < this.numberOfFloors) {
-            this.currentFloor = currentFloor;
+        if(currentFloor < 0 || currentFloor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
+        this.currentFloor = currentFloor;
     }
 
     /**
@@ -106,9 +106,10 @@ public class Elevator {
      * @param targetFloor The target floor of the elevator.
      */
     public void setTargetFloor(int targetFloor) {
-        if(targetFloor > 0 && targetFloor < this.numberOfFloors) {
-            this.targetFloor = targetFloor;
+        if(targetFloor < 0 || targetFloor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
+        this.targetFloor = targetFloor;
     }
 
     /**
@@ -124,7 +125,7 @@ public class Elevator {
      * @param committedDirection The committed direction of the elevator.
      */
     public void setCommittedDirection(int committedDirection) {
-        if(committedDirection < IElevator.ELEVATOR_DIRECTION_UP && committedDirection > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
+        if(committedDirection < IElevator.ELEVATOR_DIRECTION_UP || committedDirection > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
             throw new IllegalArgumentException();
         }
         this.committedDirection = committedDirection;
@@ -143,7 +144,7 @@ public class Elevator {
      * @param doorStatus The status of the elevator doors.
      */
     public void setDoorStatus(int doorStatus) {
-        if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN && doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
+        if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN || doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
             throw new IllegalArgumentException();
         }
         this.doorStatus = doorStatus;
@@ -187,7 +188,7 @@ public class Elevator {
      * @return The status of the floor button inside the elevator for the specified floor.
      */
     public boolean getFloorButtonStatus(int floor) {
-        if(floor < 0 && floor >= this.numberOfFloors) {
+        if(floor < 0 || floor >= this.numberOfFloors) {
             throw new IllegalArgumentException();
         }
         return floorButtonStatus[floor];
@@ -199,7 +200,7 @@ public class Elevator {
      * @param floorButtonStatus The array representing the status of floor buttons inside the elevator.
      */
     public void setFloorButtonStatus(int floor, boolean floorButtonStatus) {
-        if(floor < 0 && floor >= this.numberOfFloors) {
+        if(floor < 0 || floor >= this.numberOfFloors) {
             throw new IllegalArgumentException();
         }
         this.floorButtonStatus[floor] = floorButtonStatus;
@@ -211,7 +212,7 @@ public class Elevator {
      * @return True if the elevator services the specified floor, false otherwise.
      */
     public boolean getServicedFloors(int floor) {
-        if(floor < 0 && floor >= this.numberOfFloors) {
+        if(floor < 0 || floor >= this.numberOfFloors) {
             throw new IllegalArgumentException();
         }
         return servicedFloors[floor];
@@ -223,7 +224,7 @@ public class Elevator {
      * @param service  True if the elevator should service the floor, false otherwise.
      */
     public void setServicesFloor(int floor, boolean service) {
-        if(floor < 0 && floor >= this.numberOfFloors) {
+        if(floor < 0 || floor >= this.numberOfFloors) {
             throw new IllegalArgumentException();
         }
         this.servicedFloors[floor] = service;
