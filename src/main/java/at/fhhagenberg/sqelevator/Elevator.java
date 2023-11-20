@@ -124,6 +124,9 @@ public class Elevator {
      * @param committedDirection The committed direction of the elevator.
      */
     public void setCommittedDirection(int committedDirection) {
+        if(committedDirection < IElevator.ELEVATOR_DIRECTION_UP && committedDirection > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
+            throw new IllegalArgumentException();
+        }
         this.committedDirection = committedDirection;
     }
 
@@ -140,6 +143,9 @@ public class Elevator {
      * @param doorStatus The status of the elevator doors.
      */
     public void setDoorStatus(int doorStatus) {
+        if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN && doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
+            throw new IllegalArgumentException();
+        }
         this.doorStatus = doorStatus;
     }
 
@@ -181,10 +187,10 @@ public class Elevator {
      * @return The status of the floor button inside the elevator for the specified floor.
      */
     public boolean getFloorButtonStatus(int floor) {
-        if(floor > 0 && floor < this.numberOfFloors) {
-            return floorButtonStatus[floor];
+        if(floor < 0 && floor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
-        return false;
+        return floorButtonStatus[floor];
     }
 
     /**
@@ -193,9 +199,10 @@ public class Elevator {
      * @param floorButtonStatus The array representing the status of floor buttons inside the elevator.
      */
     public void setFloorButtonStatus(int floor, boolean floorButtonStatus) {
-        if(floor > 0 && floor < this.numberOfFloors) {
-            this.floorButtonStatus[floor] = floorButtonStatus;
+        if(floor < 0 && floor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
+        this.floorButtonStatus[floor] = floorButtonStatus;
     }
 
     /**
@@ -204,10 +211,10 @@ public class Elevator {
      * @return True if the elevator services the specified floor, false otherwise.
      */
     public boolean getServicedFloors(int floor) {
-        if(floor > 0 && floor < this.numberOfFloors) {
-            return servicedFloors[floor];
+        if(floor < 0 && floor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
-        return false;
+        return servicedFloors[floor];
     }
 
     /**
@@ -216,9 +223,10 @@ public class Elevator {
      * @param service  True if the elevator should service the floor, false otherwise.
      */
     public void setServicesFloor(int floor, boolean service) {
-        if(floor > 0 && floor < this.numberOfFloors) {
-            this.servicedFloors[floor] = service;
+        if(floor < 0 && floor >= this.numberOfFloors) {
+            throw new IllegalArgumentException();
         }
+        this.servicedFloors[floor] = service;
     }
 
     /**
@@ -242,9 +250,10 @@ public class Elevator {
      * @param elevatorWeight The weight to be set for the elevator.
      */
     public void setElevatorWeight(int elevatorWeight) {
-        if(elevatorWeight > 0) {
-            this.elevatorWeight = elevatorWeight;
+        if(elevatorWeight < 0) {
+            throw new IllegalArgumentException();
         }
+        this.elevatorWeight = elevatorWeight;
     }
 }
 
