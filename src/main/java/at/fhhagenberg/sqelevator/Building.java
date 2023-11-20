@@ -109,10 +109,8 @@ public class Building implements IElevator {
     @Override
     public boolean getElevatorButton(int elevatorNumber, int floor) throws RemoteException {
         checkElevatorNumber(elevatorNumber);
-        if(floor < this.numberOfFloors) {
-            return this.elevators.get(elevatorNumber).getFloorButtonStatus(floor);
-        }
-        return false;
+
+        return this.elevators.get(elevatorNumber).getFloorButtonStatus(floor);
     }
 
 
@@ -246,9 +244,8 @@ public class Building implements IElevator {
     @Override
     public void setServicesFloors(int elevatorNumber, int floor, boolean service) throws RemoteException {
         checkElevatorNumber(elevatorNumber);
-        if(floor < this.numberOfFloors) {
-            this.elevators.get(elevatorNumber).setServicesFloor(floor, service);
-        }
+
+        this.elevators.get(elevatorNumber).setServicesFloor(floor, service);
     }
 
     /**

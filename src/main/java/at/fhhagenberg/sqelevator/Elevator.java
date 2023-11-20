@@ -67,7 +67,6 @@ public class Elevator {
         this.elevatorWeight = 0;
     }
 
-
     /**
      * Gets the elevator's number.
      * @return The elevator's number.
@@ -89,7 +88,9 @@ public class Elevator {
      * @param currentFloor The current floor of the elevator.
      */
     public void setCurrentFloor(int currentFloor) {
-        this.currentFloor = currentFloor;
+        if(currentFloor > 0 && currentFloor < this.numberOfFloors) {
+            this.currentFloor = currentFloor;
+        }
     }
 
     /**
@@ -105,7 +106,9 @@ public class Elevator {
      * @param targetFloor The target floor of the elevator.
      */
     public void setTargetFloor(int targetFloor) {
-        this.targetFloor = targetFloor;
+        if(targetFloor > 0 && targetFloor < this.numberOfFloors) {
+            this.targetFloor = targetFloor;
+        }
     }
 
     /**
@@ -178,7 +181,7 @@ public class Elevator {
      * @return The status of the floor button inside the elevator for the specified floor.
      */
     public boolean getFloorButtonStatus(int floor) {
-        if(floor < this.numberOfFloors) {
+        if(floor > 0 && floor < this.numberOfFloors) {
             return floorButtonStatus[floor];
         }
         return false;
@@ -186,10 +189,13 @@ public class Elevator {
 
     /**
      * Sets the status of floor buttons inside the elevator (pressed or not) for all floors.
+     * @param floor The floor number to set the button status.
      * @param floorButtonStatus The array representing the status of floor buttons inside the elevator.
      */
-    public void setFloorButtonStatus(boolean[] floorButtonStatus) {
-        this.floorButtonStatus = floorButtonStatus;
+    public void setFloorButtonStatus(int floor, boolean floorButtonStatus) {
+        if(floor > 0 && floor < this.numberOfFloors) {
+            this.floorButtonStatus[floor] = floorButtonStatus;
+        }
     }
 
     /**
@@ -198,7 +204,7 @@ public class Elevator {
      * @return True if the elevator services the specified floor, false otherwise.
      */
     public boolean getServicedFloors(int floor) {
-        if(floor < this.numberOfFloors) {
+        if(floor > 0 && floor < this.numberOfFloors) {
             return servicedFloors[floor];
         }
         return false;
@@ -210,7 +216,7 @@ public class Elevator {
      * @param service  True if the elevator should service the floor, false otherwise.
      */
     public void setServicesFloor(int floor, boolean service) {
-        if(floor < this.numberOfFloors) {
+        if(floor > 0 && floor < this.numberOfFloors) {
             this.servicedFloors[floor] = service;
         }
     }
@@ -236,7 +242,9 @@ public class Elevator {
      * @param elevatorWeight The weight to be set for the elevator.
      */
     public void setElevatorWeight(int elevatorWeight) {
-        this.elevatorWeight = elevatorWeight;
+        if(elevatorWeight > 0) {
+            this.elevatorWeight = elevatorWeight;
+        }
     }
 }
 
