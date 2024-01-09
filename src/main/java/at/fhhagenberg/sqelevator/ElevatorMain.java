@@ -1,14 +1,20 @@
 package at.fhhagenberg.sqelevator;
+import org.eclipse.paho.mqttv5.common.MqttMessage;
 import sqelevator.IElevator;
 import java.rmi.Naming;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+import org.eclipse.paho.mqttv5.client.MqttClient;
+import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence;
+import org.eclipse.paho.mqttv5.common.MqttException;
+
 public class ElevatorMain {
     private boolean rmiConnected = false;
     private String rmiConnectionString;
-    //private String mqttConnectionString;
+    private String mqttConnectionString;
+    private MqttClient client;
 
     private IElevator elevatorController;
     public ElevatorMain(String rmi, String mqtt) {
@@ -17,13 +23,12 @@ public class ElevatorMain {
             this.rmiConnectionString = "rmi://localhost/ElevatorSim";
         }
 
-        connect();
-        /*
         this.mqttConnectionString = mqtt;
         if(this.mqttConnectionString == "") {
             this.mqttConnectionString = "tcp://localhost:1883";
         }
-        */
+
+        connect();
     }
 
     // Overwrite for Mocktesting
@@ -32,30 +37,30 @@ public class ElevatorMain {
     }
 
 
-/*
+
     protected MqttClient getMQTTClient() throws MqttException {
         MqttClient client = new MqttClient(this.mqttConnectionString, "building_controller_client", new MemoryPersistence());  //URI, ClientId, Persistence
         client.connect();
 
         return client;
-
-        // disconnect
-        //client.disconnect();
-        // close client
-        //client.close();
     }
-    MqttMessage message = new MqttMessage("Hello".getBytes());
-    message.setQos(qos);
-    // publish message
-    client.publish(topic, message);
 
-*/
+    private void publishMQTTMessage(String topic, String message) {
+        try {
+            client.publish(topic, new MqttMessage(message.getBytes()));
+        } catch (MqttException e) {
+            System.err.println("Error publishing MQTT message: " + e.getMessage());
+        }
+    }
 
     public void connect(){
         try {
             rmiConnected = false;
             elevatorController = getRmiInterface();
             rmiConnected = true;
+            client = getMQTTClient();
+            publishMQTTMessage("test/topic", "Pascal is a huan");
+
         }
         catch (NotBoundException e) {
             System.err.println("Remote server not reachable. " + e.getMessage());
@@ -65,6 +70,8 @@ public class ElevatorMain {
         }
         catch (RemoteException e) {
             System.err.println("Remote exception on connecting: " + e.getMessage());
+        } catch (MqttException e) {
+            throw new RuntimeException(e);
         }
     }
 
