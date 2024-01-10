@@ -39,8 +39,6 @@ public class ElevatorMain {
         return (IElevator)Naming.lookup(this.rmiConnectionString);
     }
 
-
-
     private void startPollingElevatorState() {
         executorService.submit(() -> {
 
@@ -84,7 +82,6 @@ public class ElevatorMain {
             rmiConnected = true;
             mqttWrapper = getMQTTClient();
             mqttWrapper.publishMQTTMessage("ElevatorController", "RMI Connection established.");
-
         }
         catch (NotBoundException e) {
             System.err.println("Remote server not reachable. " + e.getMessage());
@@ -99,70 +96,60 @@ public class ElevatorMain {
         }
     }
 
-    public void runElevevatorBigBrain(int elevator){
-
+    public void runElevatorBigBrain(int elevator){
         final int sleepTime = 10;
         while(true){
             while (!rmiConnected) Thread.onSpinWait();
 
-            // Set the committed direction displayed on the elevator to up
+            // Check the weight of the elevator to ensure it's within capacity
             try {
-                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UP);
+                /*
+                if (elevatorController.getElevatorWeight(elevator) > MAX_CAPACITY) {
+                    // Handle overweight situation (e.g., do not move, alert, etc.)
+                    continue;
+                }
+                 */
 
-                for (int nextFloor = 1; nextFloor < elevatorController.getFloorNum(); nextFloor++) {
+                // Check for call signals on each floor and passenger requests inside the elevator
+                boolean shouldMove = false;
+                int targetFloor = -1;
 
-                    // Set the target floor to the next floor above
-                    elevatorController.setTarget(elevator, nextFloor);
+                for (int floor = 0; floor < elevatorController.getFloorNum(); floor++) {
+                    if (elevatorController.getFloorButtonUp(floor) || elevatorController.getFloorButtonDown(floor)) {
+                        // If a call signal is detected, set targetFloor to this floor
+                        targetFloor = floor;
+                        shouldMove = true;
+                        break;
+                    }
+                }
+
+                // Check inside the elevator for passenger requests
+                for (int floor = 0; floor < elevatorController.getFloorNum(); floor++) {
+                    if (elevatorController.getElevatorButton(elevator, floor)) {
+                        // If a passenger has selected a floor, set targetFloor to this floor
+                        targetFloor = floor;
+                        shouldMove = true;
+                        break;
+                    }
+                }
+
+                if (shouldMove) {
+                    // Move the elevator towards the target floor
+                    elevatorController.setTarget(elevator, targetFloor);
 
                     // Wait until closest floor is the target floor and speed is back to zero
-                    while (elevatorController.getElevatorFloor(elevator) < nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
+                    while (elevatorController.getElevatorFloor(elevator) != targetFloor ||
+                            elevatorController.getElevatorSpeed(elevator) > 0) {
                         try {
                             Thread.sleep(sleepTime);
-                        } catch (InterruptedException e) {
-                        }
+                        } catch (InterruptedException e) {}
                     }
 
                     // Wait until doors are open before setting the next direction
                     while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
                         try {
                             Thread.sleep(sleepTime);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                }
-
-                // Second, go back from the top floor to the ground floor in one move
-                // Set the committed direction displayed on the elevator to down
-                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_DOWN);
-
-                for (int nextFloor = elevatorController.getFloorNum() - 1; nextFloor >= 0; nextFloor--) {
-
-                    // Setzen Sie das Zielgeschoss auf das nächste darunterliegende Stockwerk
-                    elevatorController.setTarget(elevator, nextFloor);
-
-                    // Warten Sie, bis das nächstliegende Stockwerk das Zielgeschoss ist und die Geschwindigkeit wieder null ist
-                    while (elevatorController.getElevatorFloor(elevator) > nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
-                        try {
-                            Thread.sleep(sleepTime);
                         } catch (InterruptedException e) {}
-                    }
-
-                    // Warten Sie, bis die Türen geöffnet sind, bevor Sie die nächste Richtung einstellen
-                    while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
-                        try {
-                            Thread.sleep(sleepTime);
-                        } catch (InterruptedException e) {}
-                    }
-                }
-
-                // Set the committed direction to uncommitted when back at the ground floor
-                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
-
-                // Wait until doors are open before setting the next direction
-                while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
                     }
                 }
             } catch (RemoteException e) {
@@ -179,7 +166,7 @@ public class ElevatorMain {
             int finalI = i;
             threads.add(new Thread(new Runnable() {
                 public void run() {
-                    runElevevatorBigBrain(finalI);
+                    runElevatorBigBrain(finalI);
                 }
             }));
             threads.get(i).start();
