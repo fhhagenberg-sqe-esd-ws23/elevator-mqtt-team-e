@@ -1,5 +1,4 @@
 package at.fhhagenberg.sqelevator;
-import org.eclipse.paho.mqttv5.common.MqttMessage;
 import sqelevator.IElevator;
 import java.rmi.Naming;
 import java.net.MalformedURLException;
@@ -8,16 +7,13 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.eclipse.paho.mqttv5.client.MqttClient;
-import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 public class ElevatorMain {
     private boolean rmiConnected = false;
     private String rmiConnectionString;
     private String mqttConnectionString;
-    private MqttClient client;
+    private MqttWrapper mqttWrapper;
     private ExecutorService executorService;
     private final int pollingInterval = 250;
     private IElevator elevatorController;
@@ -57,7 +53,7 @@ public class ElevatorMain {
             ElevatorStatus[] elevators = new ElevatorStatus[elevatorNum];
             for(int i = 0; i < elevatorNum; i++)
             {
-                elevators[i] = new ElevatorStatus(client, elevatorController, i);
+                elevators[i] = new ElevatorStatus(mqttWrapper, elevatorController, i);
             }
 
             while (true) {
@@ -76,19 +72,9 @@ public class ElevatorMain {
         });
     }
 
-    protected MqttClient getMQTTClient() throws MqttException {
-        MqttClient client = new MqttClient(this.mqttConnectionString, "building_controller_client", new MemoryPersistence());  //URI, ClientId, Persistence
-        client.connect();
-
-        return client;
-    }
-
-    private void publishMQTTMessage(String topic, String message) {
-        try {
-            client.publish(topic, new MqttMessage(message.getBytes()));
-        } catch (MqttException e) {
-            System.err.println("Error publishing MQTT message: " + e.getMessage());
-        }
+    protected MqttWrapper getMQTTClient() throws MqttException {
+        mqttWrapper = new MqttWrapper(this.mqttConnectionString, "building_controller_client");  //URI, ClientId, Persistence
+        return mqttWrapper;
     }
 
     public void connect(){
@@ -96,8 +82,8 @@ public class ElevatorMain {
             rmiConnected = false;
             elevatorController = getRmiInterface();
             rmiConnected = true;
-            client = getMQTTClient();
-            publishMQTTMessage("ElevatorController", "RMI Connection established.");
+            mqttWrapper = getMQTTClient();
+            mqttWrapper.publishMQTTMessage("ElevatorController", "RMI Connection established.");
 
         }
         catch (NotBoundException e) {

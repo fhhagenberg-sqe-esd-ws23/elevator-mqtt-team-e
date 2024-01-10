@@ -1,87 +1,52 @@
 package at.fhhagenberg.sqelevator;
-import org.eclipse.paho.mqttv5.client.MqttClient;
-import org.eclipse.paho.mqttv5.common.MqttException;
-import org.eclipse.paho.mqttv5.common.MqttMessage;
 import sqelevator.IElevator;
 
 import java.rmi.RemoteException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ElevatorStatus {
-    int elevatorNum = 0;
-    int floorNum = 0;
-    int position = 0;
-    int target = 0;
-    int committed_direction = 0;
-    int door_status = 0;
-    int speed = 0;
-    int acceleration = 0;
-    int capacity = 0;
-    int weight = 0;
+    AtomicInteger elevatorNum = new AtomicInteger(0);
+    AtomicInteger floorNum = new AtomicInteger(0);
+    AtomicInteger position = new AtomicInteger(0);
+    AtomicInteger target = new AtomicInteger(0);
+    AtomicInteger committedDirection = new AtomicInteger(0);
+    AtomicInteger doorStatus = new AtomicInteger(0);
+    AtomicInteger speed = new AtomicInteger(0);
+    AtomicInteger acceleration = new AtomicInteger(0);
+    AtomicInteger capacity = new AtomicInteger(0);
+    AtomicInteger weight = new AtomicInteger(0);
 
-    private MqttClient client;
+    private MqttWrapper client;
+
     private IElevator elevatorController;
 
-    public ElevatorStatus(MqttClient client, IElevator elevatorController, int elevatorNum){
+    public ElevatorStatus(MqttWrapper client, IElevator elevatorController, int elevatorNum){
         this.client = client;
         this.elevatorController = elevatorController;
-        this.elevatorNum = elevatorNum;
+        this.elevatorNum.set(elevatorNum);
     }
-    private void publishMQTTMessage(String topic, String message) {
-        try {
-            client.publish(topic, new MqttMessage(message.getBytes()));
-        } catch (MqttException e) {
-            System.err.println("Error publishing MQTT message: " + e.getMessage());
+
+
+    private void updateAndPublishIfChanged(String topic, AtomicInteger currentValue, int newValue) {
+        if (newValue != currentValue.get()) {
+            currentValue.set(newValue);
+            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/" + topic, Integer.toString(newValue));
         }
     }
+
     void checkStatus()
     {
         try {
-            if(floorNum != elevatorController.getElevatorFloor(elevatorNum))
-            {
-                floorNum = elevatorController.getElevatorFloor(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/floorNum", Integer.toString(floorNum));
-            }
-            if(position != elevatorController.getElevatorPosition(elevatorNum))
-            {
-                position = elevatorController.getElevatorPosition(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/position", Integer.toString(position));
-            }
-            if(target != elevatorController.getTarget(elevatorNum))
-            {
-                target = elevatorController.getTarget(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/target", Integer.toString(target));
-            }
-            if(committed_direction != elevatorController.getCommittedDirection(elevatorNum))
-            {
-                committed_direction = elevatorController.getCommittedDirection(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/committed_direction", Integer.toString(committed_direction));
-            }
-            if(door_status != elevatorController.getElevatorDoorStatus(elevatorNum))
-            {
-                door_status = elevatorController.getElevatorDoorStatus(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/door_status", Integer.toString(door_status));
-            }
-            if(speed != elevatorController.getElevatorSpeed(elevatorNum))
-            {
-                speed = elevatorController.getElevatorSpeed(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/speed", Integer.toString(speed));
-            }
-            if(acceleration != elevatorController.getElevatorAccel(elevatorNum))
-            {
-                acceleration = elevatorController.getElevatorAccel(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/acceleration", Integer.toString(acceleration));
-            }
-            if(capacity != elevatorController.getElevatorCapacity(elevatorNum))
-            {
-                capacity = elevatorController.getElevatorCapacity(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/capacity", Integer.toString(capacity));
-            }
-            if(weight != elevatorController.getElevatorWeight(elevatorNum))
-            {
-                weight = elevatorController.getElevatorWeight(elevatorNum);
-                publishMQTTMessage("ElevatorController/"+elevatorNum+"/weight", Integer.toString(weight));
-            }
+            updateAndPublishIfChanged("floorNum", floorNum, elevatorController.getElevatorFloor(elevatorNum.get()));
+            updateAndPublishIfChanged("position", position, elevatorController.getElevatorPosition(elevatorNum.get()));
+            updateAndPublishIfChanged("target", target, elevatorController.getTarget(elevatorNum.get()));
+            updateAndPublishIfChanged("committed_direction", committedDirection, elevatorController.getCommittedDirection(elevatorNum.get()));
+            updateAndPublishIfChanged("door_status", doorStatus, elevatorController.getElevatorDoorStatus(elevatorNum.get()));
+            updateAndPublishIfChanged("speed", speed, elevatorController.getElevatorSpeed(elevatorNum.get()));
+            updateAndPublishIfChanged("acceleration", acceleration, elevatorController.getElevatorAccel(elevatorNum.get()));
+            updateAndPublishIfChanged("capacity", capacity, elevatorController.getElevatorCapacity(elevatorNum.get()));
+            updateAndPublishIfChanged("weight", weight, elevatorController.getElevatorWeight(elevatorNum.get()));
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
