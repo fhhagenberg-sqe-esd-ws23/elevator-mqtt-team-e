@@ -10,22 +10,22 @@ import java.util.concurrent.Executors;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 public class ElevatorMain {
-    private boolean rmiConnected = false;
+    private volatile boolean rmiConnected = false;
     private String rmiConnectionString;
     private String mqttConnectionString;
     private MqttWrapper mqttWrapper;
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
     private final int pollingInterval = 250;
     private IElevator elevatorController;
 
     public ElevatorMain(String rmi, String mqtt) {
         this.rmiConnectionString = rmi;
-        if(this.rmiConnectionString == "") {
+        if(this.rmiConnectionString.isEmpty()) {
             this.rmiConnectionString = "rmi://localhost/ElevatorSim";
         }
 
         this.mqttConnectionString = mqtt;
-        if(this.mqttConnectionString == "") {
+        if(this.mqttConnectionString.isEmpty()) {
             this.mqttConnectionString = "tcp://localhost:1883";
         }
         connect();
@@ -99,25 +99,64 @@ public class ElevatorMain {
         }
     }
 
-    public void runElevevatorBigBrain(int elevator) throws RemoteException {
+    public void runElevevatorBigBrain(int elevator){
 
         final int sleepTime = 10;
         while(true){
+            while (!rmiConnected) Thread.onSpinWait();
+
             // Set the committed direction displayed on the elevator to up
-            elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UP);
+            try {
+                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UP);
 
-            for (int nextFloor = 1; nextFloor < elevatorController.getFloorNum(); nextFloor++) {
+                for (int nextFloor = 1; nextFloor < elevatorController.getFloorNum(); nextFloor++) {
 
-                // Set the target floor to the next floor above
-                elevatorController.setTarget(elevator, nextFloor);
+                    // Set the target floor to the next floor above
+                    elevatorController.setTarget(elevator, nextFloor);
 
-                // Wait until closest floor is the target floor and speed is back to zero
-                while (elevatorController.getElevatorFloor(elevator) < nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
+                    // Wait until closest floor is the target floor and speed is back to zero
+                    while (elevatorController.getElevatorFloor(elevator) < nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+
+                    // Wait until doors are open before setting the next direction
+                    while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException e) {
+                        }
                     }
                 }
+
+                // Second, go back from the top floor to the ground floor in one move
+                // Set the committed direction displayed on the elevator to down
+                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_DOWN);
+
+                for (int nextFloor = elevatorController.getFloorNum() - 1; nextFloor >= 0; nextFloor--) {
+
+                    // Setzen Sie das Zielgeschoss auf das nächste darunterliegende Stockwerk
+                    elevatorController.setTarget(elevator, nextFloor);
+
+                    // Warten Sie, bis das nächstliegende Stockwerk das Zielgeschoss ist und die Geschwindigkeit wieder null ist
+                    while (elevatorController.getElevatorFloor(elevator) > nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException e) {}
+                    }
+
+                    // Warten Sie, bis die Türen geöffnet sind, bevor Sie die nächste Richtung einstellen
+                    while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException e) {}
+                    }
+                }
+
+                // Set the committed direction to uncommitted when back at the ground floor
+                elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
 
                 // Wait until doors are open before setting the next direction
                 while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
@@ -126,41 +165,8 @@ public class ElevatorMain {
                     } catch (InterruptedException e) {
                     }
                 }
-            }
-
-            // Second, go back from the top floor to the ground floor in one move
-            // Set the committed direction displayed on the elevator to down
-            elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_DOWN);
-
-            for (int nextFloor = elevatorController.getFloorNum() - 1; nextFloor >= 0; nextFloor--) {
-
-                // Setzen Sie das Zielgeschoss auf das nächste darunterliegende Stockwerk
-                elevatorController.setTarget(elevator, nextFloor);
-
-                // Warten Sie, bis das nächstliegende Stockwerk das Zielgeschoss ist und die Geschwindigkeit wieder null ist
-                while (elevatorController.getElevatorFloor(elevator) > nextFloor || elevatorController.getElevatorSpeed(elevator) > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {}
-                }
-
-                // Warten Sie, bis die Türen geöffnet sind, bevor Sie die nächste Richtung einstellen
-                while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {}
-                }
-            }
-
-            // Set the committed direction to uncommitted when back at the ground floor
-            elevatorController.setCommittedDirection(elevator, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
-
-            // Wait until doors are open before setting the next direction
-            while (elevatorController.getElevatorDoorStatus(elevator) != IElevator.ELEVATOR_DOORS_OPEN) {
-                try {
-                    Thread.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                }
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -173,11 +179,7 @@ public class ElevatorMain {
             int finalI = i;
             threads.add(new Thread(new Runnable() {
                 public void run() {
-                    try {
-                        runElevevatorBigBrain(finalI);
-                    } catch (RemoteException e) {
-                        throw new RuntimeException(e);
-                    }
+                    runElevevatorBigBrain(finalI);
                 }
             }));
             threads.get(i).start();
