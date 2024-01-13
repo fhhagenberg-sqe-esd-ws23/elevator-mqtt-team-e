@@ -1,8 +1,6 @@
 package at.fhhagenberg.sqelevator;
 
 import org.eclipse.paho.mqttv5.common.MqttException;
-import sqelevator.IElevator;
-
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -14,8 +12,8 @@ public class MqttAdapter {
     private final int pollingInterval = 250;
     private final BuildingStatus buildingStatus;
 
-    public MqttAdapter(String rmiConnectionString, String mqttConnectionString) throws MalformedURLException, NotBoundException, MqttException {
-        mqttWrapper = getMQTTClient(mqttConnectionString, "");
+    public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) throws MqttException {
+        mqttWrapper = getMQTTClient(mqttConnectionString, clientId);
         mqttWrapper.publishMQTTMessage("ElevatorController", "RMI Connection established.");
 
         buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
@@ -27,12 +25,15 @@ public class MqttAdapter {
         startPollingElevatorState();
     }
 
-    protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) throws MqttException {
+    protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
         if(mqttConnectionString.isEmpty()) {
             mqttConnectionString = "tcp://localhost:1883";
         }
+        if(clientId.isEmpty()){
+            clientId = "building_controller_client";
+        }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, "building_controller_client");  //URI, ClientId, Persistence
+        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId);  //URI, ClientId, Persistence
         return mqttWrapper;
     }
 
