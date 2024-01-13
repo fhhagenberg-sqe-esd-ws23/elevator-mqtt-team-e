@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
 
 public class BuildingStatus {
 
-    private MqttWrapper client;
+    private final MqttWrapper client;
     private IElevator elevatorController;
     private boolean rmiConnected;
     private String rmiConnectionString;

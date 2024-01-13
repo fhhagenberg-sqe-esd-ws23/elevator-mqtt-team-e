@@ -1,8 +1,6 @@
 package at.fhhagenberg.sqelevator;
 
 import org.eclipse.paho.mqttv5.common.MqttException;
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.concurrent.ExecutorService;
 
@@ -12,7 +10,7 @@ public class MqttAdapter {
     private final int pollingInterval = 250;
     private final BuildingStatus buildingStatus;
 
-    public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) throws MqttException {
+    public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
         mqttWrapper = getMQTTClient(mqttConnectionString, clientId);
         mqttWrapper.publishMQTTMessage("ElevatorController", "RMI Connection established.");
 

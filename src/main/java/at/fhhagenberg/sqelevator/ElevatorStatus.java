@@ -2,9 +2,7 @@ package at.fhhagenberg.sqelevator;
 import sqelevator.IElevator;
 
 import java.rmi.RemoteException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 public class ElevatorStatus {
     AtomicInteger elevatorNum = new AtomicInteger(0);
@@ -16,9 +14,9 @@ public class ElevatorStatus {
 
     private boolean[] elevatorButtons;
 
-    private MqttWrapper client;
+    private final MqttWrapper client;
 
-    private IElevator elevatorController;
+    private final IElevator elevatorController;
 
     public ElevatorStatus(MqttWrapper client, IElevator elevatorController, int elevatorNum) throws RemoteException {
         this.client = client;
@@ -50,7 +48,7 @@ public class ElevatorStatus {
         for(int i = 0; i < elevatorController.getFloorNum(); i++)
         {
             elevatorButtons[i] = elevatorController.getElevatorButton(elevator, i);
-            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + Integer.toString(i),
+            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + i,
                     Boolean.toString(elevatorButtons[i]));
         }
     }
@@ -76,7 +74,7 @@ public class ElevatorStatus {
             if(newButtonState != elevatorButtons[i])
             {
                 elevatorButtons[i] = newButtonState;
-                client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + Integer.toString(i),
+                client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + i,
                         Boolean.toString(elevatorButtons[i]));
             }
         }
