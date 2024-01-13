@@ -1,6 +1,5 @@
 package at.fhhagenberg.sqelevator;
 
-import org.eclipse.paho.mqttv5.common.MqttException;
 import java.rmi.RemoteException;
 import java.util.concurrent.ExecutorService;
 
