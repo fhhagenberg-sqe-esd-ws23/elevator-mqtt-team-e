@@ -18,7 +18,7 @@ public class MqttAdapter implements MqttCallback {
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private final BuildingStatus buildingStatus;
-    private static final Logger LOGGER = Logger.getLogger(MqttWrapper.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MqttAdapter.class.getName());
 
     private boolean initDone;
 

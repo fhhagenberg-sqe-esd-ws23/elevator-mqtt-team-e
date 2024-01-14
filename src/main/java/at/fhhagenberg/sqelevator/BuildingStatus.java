@@ -17,7 +17,6 @@ public class BuildingStatus {
     private String rmiConnectionString;
     private ElevatorStatus[] elevators;
     private int elevatorNum;
-    private int floorNum;
     private boolean upToDate;
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
@@ -40,7 +39,7 @@ public class BuildingStatus {
         boolean messageSent = false;
         do{
             try {
-                floorNum = elevatorController.getFloorNum();
+                int floorNum = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
                 client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));

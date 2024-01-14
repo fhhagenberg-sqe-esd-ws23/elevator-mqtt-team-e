@@ -16,7 +16,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 
 // MQTT to Algo
 public class ElevatorMain implements MqttCallback {
-    private static final Logger LOGGER = Logger.getLogger(MqttWrapper.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ElevatorMain.class.getName());
     private MqttWrapper mqttWrapper;
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
