@@ -112,7 +112,7 @@ public class ElevatorMain implements MqttCallback {
             }
 
             // Check if any outside button of previous Floor pressed
-            for(int i = building.getCurrentFloor(elevator); i < numberOfFloors; i++)
+            for(int i = building.getCurrentFloor(elevator) + 1; i < numberOfFloors; i++)
             {
                 if(building.getFloorState(i,true))
                 {
@@ -138,7 +138,7 @@ public class ElevatorMain implements MqttCallback {
             }
 
             // Check if any outside button of previous Floor pressed down
-            for(int i = building.getCurrentFloor(elevator); i < numberOfFloors; i++)
+            for(int i = building.getCurrentFloor(elevator) - 1; i >= 0; i--)
             {
                 if(building.getFloorState(i,false))
                 {
