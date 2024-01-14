@@ -19,8 +19,8 @@ public class BuildingStatus {
     private ElevatorStatus[] elevators;
     private int elevatorNum;
 
-    private final String topicElevatorNum = "NumberElevators/";
-    private final String topicFloorNum = "NumberFloors/";
+    private final static String topicElevatorNum = "NumberElevators/";
+    private final static  String topicFloorNum = "NumberFloors/";
 
 
 
@@ -37,9 +37,9 @@ public class BuildingStatus {
         connectRMI();
     }
 
-    public void Init() throws RemoteException {
+    public void init() throws RemoteException {
         // Send Initial State
-        boolean MessageSent = false;
+        boolean messageSent = false;
         int numFloors = 0;
         do{
             try {
@@ -49,7 +49,7 @@ public class BuildingStatus {
                 client.publishRetainedMQTTMessage(topicElevatorNum, Integer.toString(elevatorNum));
                 client.publishRetainedMQTTMessage(topicFloorNum, Integer.toString(numFloors));
 
-                MessageSent = true;
+                messageSent = true;
 
                 buttonPressedUp = new boolean[numFloors];
                 buttonPressedDown = new boolean[numFloors];
@@ -71,7 +71,7 @@ public class BuildingStatus {
             } catch (RemoteException e) {
             connectRMI();
             }
-        }while(!MessageSent);
+        }while(!messageSent);
 
     }
 

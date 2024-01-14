@@ -7,13 +7,13 @@ public class ElevatorStorage {
     private int doorStatus = ELEVATOR_DOORS_CLOSED;
     private boolean[] floorButtonStatus;
 
-    public final static int ELEVATOR_DIRECTION_UP = 0;
-    public final static int ELEVATOR_DIRECTION_DOWN = 1;
-    public final static int ELEVATOR_DIRECTION_UNCOMMITTED = 2;
-    public final static int ELEVATOR_DOORS_OPEN = 1;
-    public final static int ELEVATOR_DOORS_CLOSED = 2;
-    public final static int ELEVATOR_DOORS_OPENING = 3;
-    public final static int ELEVATOR_DOORS_CLOSING = 4;
+    public static final int ELEVATOR_DIRECTION_UP = 0;
+    public static final int ELEVATOR_DIRECTION_DOWN = 1;
+    public static final int ELEVATOR_DIRECTION_UNCOMMITTED = 2;
+    public static final int ELEVATOR_DOORS_OPEN = 1;
+    public static final int ELEVATOR_DOORS_CLOSED = 2;
+    public static final int ELEVATOR_DOORS_OPENING = 3;
+    public static final int ELEVATOR_DOORS_CLOSING = 4;
 
     public ElevatorStorage(int numberOfFloors) {
         floorButtonStatus = new boolean[numberOfFloors];

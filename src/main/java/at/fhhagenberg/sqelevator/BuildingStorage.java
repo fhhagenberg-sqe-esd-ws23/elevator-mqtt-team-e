@@ -41,16 +41,16 @@ public class BuildingStorage {
         return numberOfFloors;
     }
 
-    public boolean getFloorState(int floor, boolean Up)
+    public boolean getFloorState(int floor, boolean up)
     {
-        return Up ? this.floors.get(floor).isUpButtonPressed() : this.floors.get(floor).isDownButtonPressed();
+        return up ? this.floors.get(floor).isUpButtonPressed() : this.floors.get(floor).isDownButtonPressed();
     }
 
-    public void setFloorState(int floor, boolean Up, boolean pressed)
+    public void setFloorState(int floor, boolean up, boolean pressed)
     {
-        if(Up){
+        if(up){
             this.floors.get(floor).setUpPressed(pressed);
-        }else{
+        } else {
             this.floors.get(floor).setDownPressed(pressed);
         }
     }

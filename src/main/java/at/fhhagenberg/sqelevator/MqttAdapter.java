@@ -8,16 +8,15 @@ import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
 import java.rmi.RemoteException;
-import java.sql.SQLOutput;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MqttAdapter implements MqttCallback {
     private MqttWrapper mqttWrapper;
     private ExecutorService executorService;
-    private final int pollingInterval = 250;
-    private final String controllerTopicMain = "ElevatorControllerMain/";
-    private final String controllerTopicRMI = "ElevatorControllerRMI/";
+    private static final int pollingInterval = 250;
+    private static final String controllerTopicMain = "ElevatorControllerMain/";
+    private static final String controllerTopicRMI = "ElevatorControllerRMI/";
     private final BuildingStatus buildingStatus;
 
     public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
@@ -26,7 +25,7 @@ public class MqttAdapter implements MqttCallback {
 
         buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
         try {
-            buildingStatus.Init();
+            buildingStatus.init();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -64,9 +63,12 @@ public class MqttAdapter implements MqttCallback {
 
     @Override
     public void disconnected(MqttDisconnectResponse var1){
+        // not needed
     }
     @Override
-    public void mqttErrorOccurred(MqttException var1){}
+    public void mqttErrorOccurred(MqttException var1){
+        // not needed
+    }
     @Override
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
         //System.out.println("received: " + var1 + " ~ " + var2);
@@ -88,9 +90,15 @@ public class MqttAdapter implements MqttCallback {
         System.out.println("Unhandeled");
     }
     @Override
-    public void deliveryComplete(IMqttToken var1){}
+    public void deliveryComplete(IMqttToken var1){
+        // not needed
+    }
     @Override
-    public void connectComplete(boolean var1, String var2){}
+    public void connectComplete(boolean var1, String var2){
+        // not needed
+    }
     @Override
-    public void authPacketArrived(int var1, MqttProperties var2){}
+    public void authPacketArrived(int var1, MqttProperties var2){
+        // not needed
+    }
 }
