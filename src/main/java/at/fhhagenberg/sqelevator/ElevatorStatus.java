@@ -40,7 +40,8 @@ public class ElevatorStatus {
 
     public void publishInit(String topic, AtomicInteger currentValue, int newValue) {
             currentValue.set(newValue);
-            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/" + topic, Integer.toString(newValue));
+
+            client.publishMQTTMessage(elevatorNum + "/" + topic, Integer.toString(newValue));
     }
 
     public void publishInitElevatorButtons() throws RemoteException {
@@ -48,7 +49,7 @@ public class ElevatorStatus {
         for(int i = 0; i < elevatorController.getFloorNum(); i++)
         {
             elevatorButtons[i] = elevatorController.getElevatorButton(elevator, i);
-            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + i,
+            client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i,
                     Boolean.toString(elevatorButtons[i]));
         }
     }
@@ -56,7 +57,7 @@ public class ElevatorStatus {
     private void updateAndPublishIfChanged(String topic, AtomicInteger currentValue, int newValue) {
         if (newValue != currentValue.get()) {
             currentValue.set(newValue);
-            client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/" + topic, Integer.toString(newValue));
+            client.publishMQTTMessage(elevatorNum + "/" + topic, Integer.toString(newValue));
         }
     }
 
@@ -74,7 +75,7 @@ public class ElevatorStatus {
             if(newButtonState != elevatorButtons[i])
             {
                 elevatorButtons[i] = newButtonState;
-                client.publishMQTTMessage("ElevatorController/" + elevatorNum + "/FloorButton" + i,
+                client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i,
                         Boolean.toString(elevatorButtons[i]));
             }
         }

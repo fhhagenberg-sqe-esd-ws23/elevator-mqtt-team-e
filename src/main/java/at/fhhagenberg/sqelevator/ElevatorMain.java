@@ -1,6 +1,9 @@
 package at.fhhagenberg.sqelevator;
-import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
+import org.eclipse.paho.mqttv5.client.IMqttToken;
+import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
+import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import sqelevator.IElevator;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
@@ -9,13 +12,16 @@ import java.util.Arrays;
 import java.util.Vector;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
-public class ElevatorMain implements IMqttMessageListener{
-    private MqttWrapper mqttWrapper;
 
+// MQTT to Algo
+public class ElevatorMain implements MqttCallback {
+    private MqttWrapper mqttWrapper;
     private volatile boolean IsNumberOfElevatorsInitialised = false;
     private volatile boolean IsNumberOfFloorsInitialised = false;
-    private final String topicElevatorNum = "ElevatorController/NumberFloors/";
-    private final String topicFloorNum = "ElevatorController/NumberElevators/";
+    private final String controllerTopicMain = "ElevatorControllerMain/";
+    private final String controllerTopicRMI = "ElevatorControllerRMI/";
+    private final String topicElevatorNum = "NumberElevators/";
+    private final String topicFloorNum = "NumberFloors/";
     private int numberOfFloors = 0;
     private int numberOfElevators = 0;
     private ElevatorState state = ElevatorState.UNCOMMITTED;
@@ -29,8 +35,8 @@ public class ElevatorMain implements IMqttMessageListener{
     public ElevatorMain(String mqtt, String clientId) {
         mqttWrapper = getMQTTClient(mqtt, clientId);
 
-        mqttWrapper.subscribe(topicElevatorNum);
-        mqttWrapper.subscribe(topicFloorNum);
+        mqttWrapper.subscribe(controllerTopicRMI + "#");
+        mqttWrapper.subscribe(controllerTopicRMI + "#");
     }
 
     protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
@@ -41,7 +47,7 @@ public class ElevatorMain implements IMqttMessageListener{
             clientId = "building_controller_client";
         }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId);  //URI, ClientId, Persistence
+        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, controllerTopicMain, this);  //URI, ClientId, Persistence
         return mqttWrapper;
     }
 
@@ -64,9 +70,6 @@ public class ElevatorMain implements IMqttMessageListener{
             }
         }
     }
-
-
-
 
     private ElevatorState moveElevatorUp(int elevator, int sleepTime) {
         ElevatorState state = ElevatorState.UP;
@@ -137,7 +140,7 @@ public class ElevatorMain implements IMqttMessageListener{
                     if(i < nextFloor)
                     {
                         nextFloor = i;
-                    }else{
+                    } else {
                         break;
                     }
                 }
@@ -150,8 +153,14 @@ public class ElevatorMain implements IMqttMessageListener{
     }
 
     private void moveToFloor(int elevator, ElevatorState state, int floor, int sleepTime) {
+
         // TODO mqtt setCommittedDirection(state)
         // TODO mqtt setTarget(elevator, floor)
+        System.out.println("WUIIII");
+
+        mqttWrapper.publishMQTTMessage(elevator + "/CommittedDirection/" , state.toString());
+        mqttWrapper.publishMQTTMessage(elevator + "/Target/" , Integer.toString(floor));
+
         while (building.getCurrentFloor(elevator) != floor) {
             try {
                 Thread.sleep(sleepTime);
@@ -180,7 +189,8 @@ public class ElevatorMain implements IMqttMessageListener{
         // Wait for Init to finish
         while(!IsNumberOfFloorsInitialised || !IsNumberOfElevatorsInitialised){}
 
-        building = new BuildingStorage(numberOfElevators, numberOfFloors);
+        building = new BuildingStorage(numberOfFloors, numberOfElevators);
+
         AddTopics(numberOfElevators, numberOfFloors);
 
         Vector<Thread> threads = new Vector<>();
@@ -202,20 +212,80 @@ public class ElevatorMain implements IMqttMessageListener{
     }
 
     @Override
-    public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-        if(s.equals(topicFloorNum)){
-            numberOfFloors = Integer.parseInt(Arrays.toString(mqttMessage.getPayload()));
+    public void disconnected(MqttDisconnectResponse var1){
+    }
+    @Override
+    public void mqttErrorOccurred(MqttException var1){}
+    @Override
+    public void messageArrived(String var1, MqttMessage var2) throws Exception {
+        //System.out.println("received: " + var1 + " ~ " + var2);
+        if(var1.equals(controllerTopicRMI + topicFloorNum)) {
+            numberOfFloors = Integer.parseInt(var2.toString());
             IsNumberOfFloorsInitialised = true;
+            return;
         }
-        if(s.equals(topicElevatorNum)){
-            numberOfElevators = Integer.parseInt(Arrays.toString(mqttMessage.getPayload()));
+        if(var1.equals(controllerTopicRMI + topicElevatorNum)) {
+            numberOfElevators = Integer.parseInt(var2.toString());
             IsNumberOfElevatorsInitialised = true;
+            return;
         }
-        if(!IsNumberOfFloorsInitialised || !IsNumberOfElevatorsInitialised){
+        if(!IsNumberOfFloorsInitialised || !IsNumberOfElevatorsInitialised || building == null){
+            return;
+        }
+
+        String[] topics = var1.split("/");
+        if(topics.length < 3) {
+            System.out.println("yeet at 3");
+            return;
+        }
+        if(topics[1].equals("FloorButtonUp")) {
+            building.setFloorState(Integer.parseInt(topics[2]), true, var2.toString().equals("true"));
+            return;
+        }
+        if(topics[1].equals("FloorButtonDown")) {
+            building.setFloorState(Integer.parseInt(topics[2]), false, var2.toString().equals("true"));
+            return;
+        }
+
+        if(topics[2].equals("floorNum")) {
+            building.setCurrentFloor(Integer.parseInt(topics[1]), Integer.parseInt(var2.toString()));
+            return;
+        }
+        if(topics[2].equals("position")) {
+            //building.setCurrentFloor(Integer.parseInt(topics[1]), Integer.parseInt(var2.toString()));
+            return;
+        }
+        if(topics[2].equals("target")) {
+            building.setTargetFloor(Integer.parseInt(topics[1]), Integer.parseInt(var2.toString()));
+            return;
+        }
+        if(topics[2].equals("committed_direction")) {
+            building.setCommittedDirection(Integer.parseInt(topics[1]), Integer.parseInt(var2.toString()));
+            return;
+        }
+        if(topics[2].equals("door_status")) {
+            int a = Integer.parseInt(var2.toString());
+
+            building.setDoorStatus(Integer.parseInt(topics[1]) , a);
+            return;
+        }
+
+        if(topics.length < 4) {
+            System.out.println("yeet at 4");
+            return;
+        }
+        if(topics[2].equals("FloorButton")) {
+            building.setFloorButtonStatus(Integer.parseInt(topics[1]), Integer.parseInt(topics[3]), var2.toString().equals("true"));
             return;
         }
 
         // Handle MqttMessages Based on Topics
-
+        System.out.println("Topic not handeled ~ " + var1);
     }
+    @Override
+    public void deliveryComplete(IMqttToken var1){}
+    @Override
+    public void connectComplete(boolean var1, String var2){}
+    @Override
+    public void authPacketArrived(int var1, MqttProperties var2){}
 }

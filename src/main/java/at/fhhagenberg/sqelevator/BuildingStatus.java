@@ -7,6 +7,8 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+
+// Mqtt -> RMI
 public class BuildingStatus {
 
     private final MqttWrapper client;
@@ -16,6 +18,11 @@ public class BuildingStatus {
 
     private ElevatorStatus[] elevators;
     private int elevatorNum;
+
+    private final String topicElevatorNum = "NumberElevators/";
+    private final String topicFloorNum = "NumberFloors/";
+
+
 
     private boolean[] buttonPressedUp;
     private boolean[] buttonPressedDown;
@@ -39,33 +46,33 @@ public class BuildingStatus {
                 numFloors = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
-                client.publishRetainedMQTTMessage("ElevatorController/NumberFloors/", Integer.toString(numFloors));
-                client.publishRetainedMQTTMessage("ElevatorController/NumberElevators/", Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(topicElevatorNum, Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(topicFloorNum, Integer.toString(numFloors));
+
                 MessageSent = true;
+
+                buttonPressedUp = new boolean[numFloors];
+                buttonPressedDown = new boolean[numFloors];
+                for(int i = 0; i < numFloors; i++){
+                    buttonPressedUp[i] = elevatorController.getFloorButtonUp(i);
+                    buttonPressedDown[i] = elevatorController.getFloorButtonDown(i);
+
+                    // Send Message
+                    client.publishMQTTMessage("FloorButtonUp/" + i, Boolean.toString(buttonPressedUp[i]));
+                    client.publishMQTTMessage("FloorButtonDown/" + i, Boolean.toString(buttonPressedDown[i]));
+                }
+
+
+                elevators = new ElevatorStatus[elevatorNum];
+                for(int i = 0; i < elevatorNum; i++){
+                    elevators[i] = new ElevatorStatus(client, elevatorController, i);
+                }
+
             } catch (RemoteException e) {
-                connectRMI();
+            connectRMI();
             }
         }while(!MessageSent);
 
-
-
-
-        buttonPressedUp = new boolean[numFloors];
-        buttonPressedDown = new boolean[numFloors];
-        for(int i = 0; i < numFloors; i++){
-            buttonPressedUp[i] = elevatorController.getFloorButtonUp(i);
-            buttonPressedDown[i] = elevatorController.getFloorButtonDown(i);
-
-            // Send Message
-            client.publishMQTTMessage("ElevatorController/FloorButtonUp" + i + "/", Boolean.toString(buttonPressedUp[i]));
-            client.publishMQTTMessage("ElevatorController/FloorButtonDown" + i + "/", Boolean.toString(buttonPressedDown[i]));
-        }
-
-
-        elevators = new ElevatorStatus[elevatorNum];
-        for(int i = 0; i < elevatorNum; i++){
-            elevators[i] = new ElevatorStatus(client, elevatorController, i);
-        }
     }
 
     public void connectRMI(){
@@ -95,6 +102,14 @@ public class BuildingStatus {
         return (IElevator) Naming.lookup(rmiConnectionString);
     }
 
+    public void reportTargetToRMI(int elNum, int target) throws RemoteException {
+        elevatorController.setTarget(elNum, target);
+    }
+
+    public void reportCommitedDirectionToRMI(int elNum, int dir) throws RemoteException {
+        elevatorController.setCommittedDirection(elNum, dir);
+    }
+
     public void sendStatus(){
         try {
             // Check FloorButtons
@@ -104,12 +119,12 @@ public class BuildingStatus {
                 boolean newButtonDown = elevatorController.getFloorButtonUp(i);
                 if(newButtonUp != buttonPressedUp[i]){
                     buttonPressedUp[i] = newButtonUp;
-                    client.publishMQTTMessage("ElevatorController/FloorButtonUp" + i + "/", Boolean.toString(buttonPressedUp[i]));
+                    client.publishMQTTMessage("FloorButtonUp/" + i + "/", Boolean.toString(buttonPressedUp[i]));
                 }
 
                 if(newButtonDown != buttonPressedDown[i]){
                     buttonPressedDown[i] = newButtonDown;
-                    client.publishMQTTMessage("ElevatorController/FloorButtonDown" + i + "/", Boolean.toString(buttonPressedDown[i]));
+                    client.publishMQTTMessage("FloorButtonDown/" + i + "/", Boolean.toString(buttonPressedDown[i]));
                 }
             }
             // Check Elevator things
