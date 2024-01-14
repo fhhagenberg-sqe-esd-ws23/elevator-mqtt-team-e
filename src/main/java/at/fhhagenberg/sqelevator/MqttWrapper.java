@@ -8,11 +8,13 @@ import org.eclipse.paho.mqttv5.client.MqttClient;
 
 public class MqttWrapper {
     private final MqttClient client;
+    private final String clientId;
 
     public MqttWrapper(String mqttConnectionString, String clientId)
     {
         try {
             this.client = new MqttClient(mqttConnectionString, clientId, new MemoryPersistence());  //URI, ClientId, Persistence
+            this.clientId = clientId;
             this.client.connect();
         } catch (MqttException e) {
             throw new RuntimeException(e);
