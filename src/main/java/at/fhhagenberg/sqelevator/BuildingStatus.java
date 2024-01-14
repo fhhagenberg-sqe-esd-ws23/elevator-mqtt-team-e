@@ -11,7 +11,7 @@ public class BuildingStatus {
 
     private final MqttWrapper client;
     private IElevator elevatorController;
-    private boolean rmiConnected;
+    private volatile boolean rmiConnected;
     private String rmiConnectionString;
 
     private ElevatorStatus[] elevators;
@@ -32,7 +32,24 @@ public class BuildingStatus {
 
     public void Init() throws RemoteException {
         // Send Initial State
-        int numFloors = elevatorController.getFloorNum();
+        boolean MessageSent = false;
+        int numFloors = 0;
+        do{
+            try {
+                numFloors = elevatorController.getFloorNum();
+                elevatorNum = elevatorController.getElevatorNum();
+
+                client.publishRetainedMQTTMessage("ElevatorController/NumberFloors/", Integer.toString(numFloors));
+                client.publishRetainedMQTTMessage("ElevatorController/NumberElevators/", Integer.toString(elevatorNum));
+                MessageSent = true;
+            } catch (RemoteException e) {
+                connectRMI();
+            }
+        }while(!MessageSent);
+
+
+
+
         buttonPressedUp = new boolean[numFloors];
         buttonPressedDown = new boolean[numFloors];
         for(int i = 0; i < numFloors; i++){
@@ -44,7 +61,7 @@ public class BuildingStatus {
             client.publishMQTTMessage("ElevatorController/FloorButtonDown" + i + "/", Boolean.toString(buttonPressedDown[i]));
         }
 
-        elevatorNum = elevatorController.getElevatorNum();
+
         elevators = new ElevatorStatus[elevatorNum];
         for(int i = 0; i < elevatorNum; i++){
             elevators[i] = new ElevatorStatus(client, elevatorController, i);

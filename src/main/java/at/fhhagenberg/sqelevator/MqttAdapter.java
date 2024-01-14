@@ -27,7 +27,7 @@ public class MqttAdapter {
             mqttConnectionString = "tcp://localhost:1883";
         }
         if(clientId.isEmpty()){
-            clientId = "building_controller_client";
+            clientId = "mqttAdapter";
         }
 
         mqttWrapper = new MqttWrapper(mqttConnectionString, clientId);  //URI, ClientId, Persistence
