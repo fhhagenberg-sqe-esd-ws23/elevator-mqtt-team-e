@@ -7,17 +7,18 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
-import java.rmi.RemoteException;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MqttAdapter implements MqttCallback {
     private MqttWrapper mqttWrapper;
-    private ExecutorService executorService;
     private static final int POLLING_INTERVAL = 250;
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private final BuildingStatus buildingStatus;
+    private static final Logger LOGGER = Logger.getLogger(MqttWrapper.class.getName());
 
     private boolean initDone;
 
@@ -47,8 +48,9 @@ public class MqttAdapter implements MqttCallback {
     }
 
     public void startPollingElevatorState() {
-        this.executorService = Executors.newSingleThreadExecutor();
-        this.executorService.submit(() -> {
+        ExecutorService executorService;
+        executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(() -> {
             while (true) {
                 try {
                     Thread.sleep(POLLING_INTERVAL);
@@ -73,10 +75,10 @@ public class MqttAdapter implements MqttCallback {
     }
     @Override
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
-        //System.out.println("received: " + var1 + " ~ " + var2);
+        //LOGGER.log(Level.INFO, String.format("received: %s ~ %s", var1, var2));
         String[] topics = var1.split("/");
         if(topics.length < 2) {
-            //System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[1].equals("InitDone")) {
@@ -86,7 +88,7 @@ public class MqttAdapter implements MqttCallback {
 
         // Topics with deeps 3
         if(topics.length < 3) {
-            //System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[2].equals("CommittedDirection")) {
@@ -97,7 +99,8 @@ public class MqttAdapter implements MqttCallback {
             buildingStatus.reportTargetToRMI(Integer.parseInt(topics[1]), Integer.parseInt(var2.toString()));
             return;
         }
-        System.out.println("Unhandeled");
+
+        LOGGER.log(Level.INFO, "Unhandeled");
     }
     @Override
     public void deliveryComplete(IMqttToken var1){

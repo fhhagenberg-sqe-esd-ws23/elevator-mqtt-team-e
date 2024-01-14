@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import sqelevator.IElevator;
 
-public class BuildingTest {
+class BuildingTest {
 
     private IElevator building;
 

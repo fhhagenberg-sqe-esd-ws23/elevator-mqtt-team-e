@@ -9,10 +9,14 @@ import sqelevator.IElevator;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 // MQTT to Algo
 public class ElevatorMain implements MqttCallback {
+    private static final Logger LOGGER = Logger.getLogger(MqttWrapper.class.getName());
     private MqttWrapper mqttWrapper;
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
@@ -214,7 +218,7 @@ public class ElevatorMain implements MqttCallback {
     }
     @Override
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
-        //System.out.println("received: " + var1 + " ~ " + var2);
+        //LOGGER.log(Level.INFO, String.format("received: %s ~ %s", var1, var2));
 
         // Init topics
         if(var1.equals(CONTROLLER_TOPIC_RMI + TOPIC_FLOOR_NUM)) {
@@ -233,7 +237,7 @@ public class ElevatorMain implements MqttCallback {
 
         // Topics with deeps 3
         if(topics.length < 3) {
-            //System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[1].equals("FloorButtonUp")) {
@@ -270,7 +274,7 @@ public class ElevatorMain implements MqttCallback {
 
         // Topics with deeps 4
         if(topics.length < 4) {
-            //System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[2].equals("FloorButton")) {
@@ -279,7 +283,7 @@ public class ElevatorMain implements MqttCallback {
         }
 
         // Handle MqttMessages Based on Topics
-        System.out.println("Topic not handeled ~ " + var1);
+        LOGGER.log(Level.INFO, String.format("Topic not handled: ~ %s", var1));
     }
     @Override
     public void deliveryComplete(IMqttToken var1){

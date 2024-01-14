@@ -7,7 +7,7 @@ import java.security.KeyStore;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FloorTest {
+class FloorTest {
     private Floor floor;
 
     @BeforeEach
