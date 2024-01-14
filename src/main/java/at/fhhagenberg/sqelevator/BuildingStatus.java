@@ -15,15 +15,10 @@ public class BuildingStatus {
     private IElevator elevatorController;
     private volatile boolean rmiConnected;
     private String rmiConnectionString;
-
     private ElevatorStatus[] elevators;
     private int elevatorNum;
-
-    private final static String topicElevatorNum = "NumberElevators/";
-    private final static  String topicFloorNum = "NumberFloors/";
-
-
-
+    private static final String topicElevatorNum = "NumberElevators/";
+    private static final String topicFloorNum = "NumberFloors/";
     private boolean[] buttonPressedUp;
     private boolean[] buttonPressedDown;
 
