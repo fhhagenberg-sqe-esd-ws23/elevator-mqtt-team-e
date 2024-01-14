@@ -19,8 +19,8 @@ public class BuildingStatus {
     private int elevatorNum;
     private int floorNum;
     private boolean upToDate;
-    private static final String topicElevatorNum = "NumberElevators/";
-    private static final String topicFloorNum = "NumberFloors/";
+    private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
+    private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private boolean[] buttonPressedUp;
     private boolean[] buttonPressedDown;
 
@@ -43,8 +43,8 @@ public class BuildingStatus {
                 floorNum = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
-                client.publishRetainedMQTTMessage(topicElevatorNum, Integer.toString(elevatorNum));
-                client.publishRetainedMQTTMessage(topicFloorNum, Integer.toString(floorNum));
+                client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(numFloors));
 
                 // Retained Msg was sent
                 messageSent = true;
