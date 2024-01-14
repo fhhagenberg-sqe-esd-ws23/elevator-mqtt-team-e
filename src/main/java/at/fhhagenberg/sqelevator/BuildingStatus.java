@@ -15,15 +15,10 @@ public class BuildingStatus {
     private IElevator elevatorController;
     private volatile boolean rmiConnected;
     private String rmiConnectionString;
-
     private ElevatorStatus[] elevators;
     private int elevatorNum;
-
-    private final String topicElevatorNum = "NumberElevators/";
-    private final String topicFloorNum = "NumberFloors/";
-
-
-
+    private static final String TopicElevatorNum = "NumberElevators/";
+    private static final String TopicFloorNum = "NumberFloors/";
     private boolean[] buttonPressedUp;
     private boolean[] buttonPressedDown;
 
@@ -37,19 +32,19 @@ public class BuildingStatus {
         connectRMI();
     }
 
-    public void Init() throws RemoteException {
+    public void init() throws RemoteException {
         // Send Initial State
-        boolean MessageSent = false;
+        boolean messageSent = false;
         int numFloors = 0;
         do{
             try {
                 numFloors = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
-                client.publishRetainedMQTTMessage(topicElevatorNum, Integer.toString(elevatorNum));
-                client.publishRetainedMQTTMessage(topicFloorNum, Integer.toString(numFloors));
+                client.publishRetainedMQTTMessage(TopicElevatorNum, Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(TopicFloorNum, Integer.toString(numFloors));
 
-                MessageSent = true;
+                messageSent = true;
 
                 buttonPressedUp = new boolean[numFloors];
                 buttonPressedDown = new boolean[numFloors];
@@ -71,7 +66,7 @@ public class BuildingStatus {
             } catch (RemoteException e) {
             connectRMI();
             }
-        }while(!MessageSent);
+        }while(!messageSent);
 
     }
 

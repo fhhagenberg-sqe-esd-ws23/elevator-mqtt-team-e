@@ -23,10 +23,10 @@ public class ElevatorStatus {
         this.elevatorController = elevatorController;
         this.elevatorNum.set(elevatorNum);
 
-        ElevatorInitStatus();
+        elevatorInitStatus();
     }
 
-    private void ElevatorInitStatus() throws RemoteException {
+    private void elevatorInitStatus() throws RemoteException {
         elevatorButtons = new boolean[elevatorController.getFloorNum()];
 
         publishInit("floorNum", floorNum, elevatorController.getElevatorFloor(elevatorNum.get()));
