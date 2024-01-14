@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BuildingStorage {
-    private List<ElevatorStorage> elevators;
+    private final List<ElevatorStorage> elevators;
 
-    private List<Floor> floors;
+    private final List<Floor> floors;
 
     private final int numberOfFloors;
 

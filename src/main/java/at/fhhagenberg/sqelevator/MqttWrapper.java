@@ -1,15 +1,13 @@
 package at.fhhagenberg.sqelevator;
 
-import jdk.jshell.spi.ExecutionControl;
 import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 
 import org.eclipse.paho.mqttv5.client.MqttClient;
-import org.eclipse.paho.mqttv5.common.MqttSubscription;
 
 public class MqttWrapper {
-    private MqttClient client;
+    private final MqttClient client;
 
     public MqttWrapper(String mqttConnectionString, String clientId)
     {
