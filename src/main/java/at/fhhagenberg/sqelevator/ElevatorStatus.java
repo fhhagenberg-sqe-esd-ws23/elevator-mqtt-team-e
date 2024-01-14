@@ -62,21 +62,21 @@ public class ElevatorStatus {
     }
 
     public void checkStatus(boolean upToDate) throws RemoteException {
-        updateAndPublishIfChanged("floorNum", floorNum, elevatorController.getElevatorFloor(elevatorNum.get()), upToDate);
-        updateAndPublishIfChanged("position", position, elevatorController.getElevatorPosition(elevatorNum.get()), upToDate);
-        updateAndPublishIfChanged("target", target, elevatorController.getTarget(elevatorNum.get()), upToDate);
-        updateAndPublishIfChanged("committed_direction", committedDirection, elevatorController.getCommittedDirection(elevatorNum.get()), upToDate);
-        updateAndPublishIfChanged("door_status", doorStatus, elevatorController.getElevatorDoorStatus(elevatorNum.get()), upToDate);
-
         int elevator = elevatorNum.get();
+
+        updateAndPublishIfChanged("floorNum", floorNum, elevatorController.getElevatorFloor(elevator), upToDate);
+        updateAndPublishIfChanged("position", position, elevatorController.getElevatorPosition(elevator), upToDate);
+        updateAndPublishIfChanged("target", target, elevatorController.getTarget(elevator), upToDate);
+        updateAndPublishIfChanged("committed_direction", committedDirection, elevatorController.getCommittedDirection(elevator), upToDate);
+        updateAndPublishIfChanged("door_status", doorStatus, elevatorController.getElevatorDoorStatus(elevator), upToDate);
+
         for(int i = 0; i < elevatorController.getFloorNum(); i++)
         {
             boolean newButtonState = elevatorController.getElevatorButton(elevator, i);
             if(newButtonState != elevatorButtons[i] || !upToDate)
             {
                 elevatorButtons[i] = newButtonState;
-                client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i,
-                        Boolean.toString(elevatorButtons[i]));
+                client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i, Boolean.toString(elevatorButtons[i]));
             }
         }
     }

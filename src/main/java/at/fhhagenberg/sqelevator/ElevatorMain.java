@@ -65,9 +65,11 @@ public class ElevatorMain implements MqttCallback {
             switch (state[elevator]) {
                 case UP:
                     state[elevator] = moveElevatorUp(elevator, sleepTime);
+                    waitForDoorsOpen(elevator, sleepTime);
                     break;
                 case DOWN:
                     state[elevator] = moveElevatorDown(elevator, sleepTime);
+                    waitForDoorsOpen(elevator, sleepTime);
                     break;
                 case UNCOMMITTED:
                     waitForDoorsOpen(elevator, sleepTime);
@@ -80,7 +82,9 @@ public class ElevatorMain implements MqttCallback {
     private ElevatorState moveElevatorUp(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.UP;
         int nextFloor = getNextFloor(elevator,true);
-        if(nextFloor < building.getCurrentFloor(elevator)) {
+        int currentFloor = building.getCurrentFloor(elevator);
+
+        if(nextFloor < currentFloor) {
             tmpState = ElevatorState.DOWN;
         }
         moveToFloor(elevator, tmpState, nextFloor, sleepTime);
@@ -90,6 +94,7 @@ public class ElevatorMain implements MqttCallback {
     private ElevatorState moveElevatorDown(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.DOWN;
         int nextFloor = getNextFloor(elevator,false);
+
         moveToFloor(elevator, tmpState, nextFloor, sleepTime);
         if(nextFloor == 0){
             tmpState = ElevatorState.UP;
@@ -168,7 +173,6 @@ public class ElevatorMain implements MqttCallback {
             } catch (InterruptedException e) {
             }
         }
-        waitForDoorsOpen(elevator, sleepTime);
     }
 
     private void waitForDoorsOpen(int elevator, int sleepTime) {
@@ -199,8 +203,6 @@ public class ElevatorMain implements MqttCallback {
             threads.get(i).start();
         }
     }
-
-
 
     @Override
     public void disconnected(MqttDisconnectResponse var1){
