@@ -17,8 +17,8 @@ public class BuildingStatus {
     private String rmiConnectionString;
     private ElevatorStatus[] elevators;
     private int elevatorNum;
-    private static final String TopicElevatorNum = "NumberElevators/";
-    private static final String TopicFloorNum = "NumberFloors/";
+    private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
+    private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private boolean[] buttonPressedUp;
     private boolean[] buttonPressedDown;
 
@@ -41,8 +41,8 @@ public class BuildingStatus {
                 numFloors = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
-                client.publishRetainedMQTTMessage(TopicElevatorNum, Integer.toString(elevatorNum));
-                client.publishRetainedMQTTMessage(TopicFloorNum, Integer.toString(numFloors));
+                client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(numFloors));
 
                 messageSent = true;
 

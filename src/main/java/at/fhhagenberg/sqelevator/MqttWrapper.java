@@ -36,7 +36,7 @@ public class MqttWrapper {
             mes.setRetained(true);
             client.publish(this.controllerTopic + topic, mes);
         } catch (MqttException e) {
-            LOGGER.log(Level.SEVERE, MqttPublishFail + e.getMessage());
+            LOGGER.log(Level.SEVERE, String.format("%s: %s", MqttPublishFail, e.getMessage()));
         }
     }
 
@@ -45,7 +45,7 @@ public class MqttWrapper {
             //System.out.println(this.controllerTopic + topic + " : " + message);
             client.publish(this.controllerTopic + topic, new MqttMessage(message.getBytes()));
         } catch (MqttException e) {
-            LOGGER.log(Level.SEVERE, MqttPublishFail + e.getMessage());
+            LOGGER.log(Level.SEVERE, String.format("%s: %s", MqttPublishFail, e.getMessage()));
         }
     }
 
@@ -53,7 +53,7 @@ public class MqttWrapper {
         try {
             client.subscribe(topic, 0);
         } catch(MqttException e) {
-            LOGGER.log(Level.SEVERE, MqttPublishFail + e.getMessage());
+            LOGGER.log(Level.SEVERE, String.format("%s: %s", MqttPublishFail, e.getMessage()));
         }
     }
 

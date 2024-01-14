@@ -14,9 +14,9 @@ import java.util.concurrent.Executors;
 public class MqttAdapter implements MqttCallback {
     private MqttWrapper mqttWrapper;
     private ExecutorService executorService;
-    private static final int PollingInterval = 250;
-    private static final String ControllerTopicMain = "ElevatorControllerMain/";
-    private static final String ControllerTopicRMI = "ElevatorControllerRMI/";
+    private static final int POLLING_INTERVAL = 250;
+    private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
+    private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private final BuildingStatus buildingStatus;
 
     public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
@@ -30,7 +30,7 @@ public class MqttAdapter implements MqttCallback {
             throw new RuntimeException(e);
         }
 
-        mqttWrapper.subscribe(ControllerTopicMain + "#");
+        mqttWrapper.subscribe(CONTROLLER_TOPIC_MAIN + "#");
     }
 
     protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
@@ -41,7 +41,7 @@ public class MqttAdapter implements MqttCallback {
             clientId = "mqttAdapter";
         }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, ControllerTopicRMI, this);  //URI, ClientId, Persistence
+        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_RMI, this);  //URI, ClientId, Persistence
         return mqttWrapper;
     }
 
@@ -50,7 +50,7 @@ public class MqttAdapter implements MqttCallback {
         this.executorService.submit(() -> {
             while (true) {
                 try {
-                    Thread.sleep(PollingInterval);
+                    Thread.sleep(POLLING_INTERVAL);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
