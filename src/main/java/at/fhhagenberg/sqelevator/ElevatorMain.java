@@ -7,11 +7,16 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import sqelevator.IElevator;
 
 import java.util.Arrays;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 // MQTT to Algo
 public class ElevatorMain implements MqttCallback {
+    private static final Logger LOGGER = Logger.getLogger(ElevatorMain.class.getName());
     private MqttWrapper mqttWrapper;
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
@@ -19,8 +24,8 @@ public class ElevatorMain implements MqttCallback {
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
-    private int numberOfFloors = 99;
-    private int numberOfElevators = 20;
+    private int numberOfFloors;
+    private int numberOfElevators;
     private ElevatorState[] state = new ElevatorState[99];
 
     private enum ElevatorState{
@@ -32,19 +37,15 @@ public class ElevatorMain implements MqttCallback {
 
     // Main
     public static void main(String[] args) {
-        ElevatorMain EvMain = new ElevatorMain("", "");
+        ElevatorMain evMain = new ElevatorMain("", "");
         MqttAdapter adapt = new MqttAdapter("","", "");
 
         adapt.startPollingElevatorState();
-        EvMain.runSim();
+        evMain.runSim();
     }
 
     public ElevatorMain(String mqtt, String clientId) {
         mqttWrapper = getMQTTClient(mqtt, clientId);
-
-        Arrays.fill(state, ElevatorState.UNCOMMITTED);
-
-        building = new BuildingStorage(numberOfFloors, numberOfElevators);
 
         mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
     }
@@ -68,9 +69,11 @@ public class ElevatorMain implements MqttCallback {
             switch (state[elevator]) {
                 case UP:
                     state[elevator] = moveElevatorUp(elevator, sleepTime);
+                    waitForDoorsOpen(elevator, sleepTime);
                     break;
                 case DOWN:
                     state[elevator] = moveElevatorDown(elevator, sleepTime);
+                    waitForDoorsOpen(elevator, sleepTime);
                     break;
                 case UNCOMMITTED:
                     waitForDoorsOpen(elevator, sleepTime);
@@ -83,7 +86,9 @@ public class ElevatorMain implements MqttCallback {
     private ElevatorState moveElevatorUp(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.UP;
         int nextFloor = getNextFloor(elevator,true);
-        if(nextFloor < building.getCurrentFloor(elevator)) {
+        int currentFloor = building.getCurrentFloor(elevator);
+
+        if(nextFloor < currentFloor) {
             tmpState = ElevatorState.DOWN;
         }
         moveToFloor(elevator, tmpState, nextFloor, sleepTime);
@@ -93,6 +98,7 @@ public class ElevatorMain implements MqttCallback {
     private ElevatorState moveElevatorDown(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.DOWN;
         int nextFloor = getNextFloor(elevator,false);
+
         moveToFloor(elevator, tmpState, nextFloor, sleepTime);
         if(nextFloor == 0){
             tmpState = ElevatorState.UP;
@@ -100,8 +106,7 @@ public class ElevatorMain implements MqttCallback {
         return tmpState;
     }
 
-    private int getNextFloor(int elevator, boolean dirUp)
-    {
+    private int getNextFloor(int elevator, boolean dirUp) {
         int nextFloor = -1;
         boolean[] elevButton = building.getFloorButtonStatus(elevator);
         if(dirUp)
@@ -116,7 +121,7 @@ public class ElevatorMain implements MqttCallback {
             }
 
             // Check if any outside button of previous Floor pressed
-            for(int i = building.getCurrentFloor(elevator); i < numberOfFloors; i++)
+            for(int i = building.getCurrentFloor(elevator) + 1; i < numberOfFloors; i++)
             {
                 if(building.getFloorState(i,true))
                 {
@@ -142,7 +147,7 @@ public class ElevatorMain implements MqttCallback {
             }
 
             // Check if any outside button of previous Floor pressed down
-            for(int i = building.getCurrentFloor(elevator); i < numberOfFloors; i++)
+            for(int i = building.getCurrentFloor(elevator) - 1; i >= 0; i--)
             {
                 if(building.getFloorState(i,false))
                 {
@@ -172,7 +177,6 @@ public class ElevatorMain implements MqttCallback {
             } catch (InterruptedException e) {
             }
         }
-        waitForDoorsOpen(elevator, sleepTime);
     }
 
     private void waitForDoorsOpen(int elevator, int sleepTime) {
@@ -186,10 +190,15 @@ public class ElevatorMain implements MqttCallback {
 
     public void runSim(){
         // Wait for Init to finish
-
         while(!isNumberOfFloorsInitialised || !isNumberOfElevatorsInitialised);
 
-        Vector<Thread> threads = new Vector<>();
+        building = new BuildingStorage(numberOfFloors, numberOfElevators);
+        state = new ElevatorState[numberOfElevators];
+        Arrays.fill(state, ElevatorState.UNCOMMITTED);
+        // Ack Init
+        mqttWrapper.publishMQTTMessage("InitDone" , "");
+
+        List<Thread> threads = new ArrayList<>();
         int threadNum = numberOfElevators;
         for(int i = 0; i < threadNum; i++)
         {
@@ -198,8 +207,6 @@ public class ElevatorMain implements MqttCallback {
             threads.get(i).start();
         }
     }
-
-
 
     @Override
     public void disconnected(MqttDisconnectResponse var1){
@@ -211,7 +218,7 @@ public class ElevatorMain implements MqttCallback {
     }
     @Override
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
-        //System.out.println("received: " + var1 + " ~ " + var2);
+        //LOGGER.log(Level.INFO, String.format("received: %s ~ %s", var1, var2));
 
         // Init topics
         if(var1.equals(CONTROLLER_TOPIC_RMI + TOPIC_FLOOR_NUM)) {
@@ -224,16 +231,13 @@ public class ElevatorMain implements MqttCallback {
             isNumberOfElevatorsInitialised = true;
             return;
         }
-        if(!isNumberOfFloorsInitialised || !isNumberOfElevatorsInitialised || building == null){
-            return;
-        }
 
         // split into subtopics
         String[] topics = var1.split("/");
 
         // Topics with deeps 3
         if(topics.length < 3) {
-            System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[1].equals("FloorButtonUp")) {
@@ -270,7 +274,7 @@ public class ElevatorMain implements MqttCallback {
 
         // Topics with deeps 4
         if(topics.length < 4) {
-            System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //LOGGER.log(Level.INFO, String.format("ignoring: %s ~ %s", var1, var2));
             return;
         }
         if(topics[2].equals("FloorButton")) {
@@ -279,7 +283,7 @@ public class ElevatorMain implements MqttCallback {
         }
 
         // Handle MqttMessages Based on Topics
-        System.out.println("Topic not handeled ~ " + var1);
+        LOGGER.log(Level.INFO, String.format("Topic not handled: ~ %s", var1));
     }
     @Override
     public void deliveryComplete(IMqttToken var1){

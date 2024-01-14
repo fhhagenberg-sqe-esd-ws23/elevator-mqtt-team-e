@@ -17,6 +17,7 @@ public class BuildingStatus {
     private String rmiConnectionString;
     private ElevatorStatus[] elevators;
     private int elevatorNum;
+    private boolean upToDate;
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private boolean[] buttonPressedUp;
@@ -29,68 +30,65 @@ public class BuildingStatus {
         }
 
         this.client = client;
+
         connectRMI();
     }
 
-    public void init() throws RemoteException {
+    public void init() {
         // Send Initial State
         boolean messageSent = false;
-        int numFloors = 0;
         do{
             try {
-                numFloors = elevatorController.getFloorNum();
+                int floorNum = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
                 client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));
-                client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(numFloors));
-
+                client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(floorNum));
+                // Retained Msg was sent
                 messageSent = true;
 
-                buttonPressedUp = new boolean[numFloors];
-                buttonPressedDown = new boolean[numFloors];
-                for(int i = 0; i < numFloors; i++){
+                buttonPressedUp = new boolean[floorNum];
+                buttonPressedDown = new boolean[floorNum];
+                for(int i = 0; i < floorNum; i++){
                     buttonPressedUp[i] = elevatorController.getFloorButtonUp(i);
                     buttonPressedDown[i] = elevatorController.getFloorButtonDown(i);
 
-                    // Send Message
-                    client.publishMQTTMessage("FloorButtonUp/" + i, Boolean.toString(buttonPressedUp[i]));
-                    client.publishMQTTMessage("FloorButtonDown/" + i, Boolean.toString(buttonPressedDown[i]));
                 }
-
-
                 elevators = new ElevatorStatus[elevatorNum];
                 for(int i = 0; i < elevatorNum; i++){
                     elevators[i] = new ElevatorStatus(client, elevatorController, i);
                 }
 
+                upToDate = false;
+
             } catch (RemoteException e) {
-            connectRMI();
+                connectRMI();
             }
         }while(!messageSent);
-
     }
 
-    public void connectRMI(){
+    public void connectRMI() {
         rmiConnected = false;
         rmiConnect();
     }
 
-    private void rmiConnect()
-    {
-        int errCount = 0;
-        int maxErr = 50;
+    private void rmiConnect() {
+        //int errCount = 0;
+        //int maxErr = 50;
         do{
             try {
                 elevatorController = getRmiInterface(rmiConnectionString);
                 rmiConnected = true;
+                upToDate = false;
             } catch (RemoteException | MalformedURLException | NotBoundException e) {
-                errCount++;
-                if(errCount == maxErr){
-                    rmiConnected = false;
-                    break;
-                }
+                //errCount++;
+                //if(errCount == maxErr){
+                //    rmiConnected = false;
+                //    break;
+                //}
+                rmiConnected = false;
             }
-        }while(!rmiConnected);
+        } while(!rmiConnected);
     }
 
     protected IElevator getRmiInterface(String rmiConnectionString) throws MalformedURLException, RemoteException, NotBoundException {
@@ -105,19 +103,19 @@ public class BuildingStatus {
         elevatorController.setCommittedDirection(elNum, dir);
     }
 
-    public void sendStatus(){
+    public void sendStatus() {
         try {
             // Check FloorButtons
             for(int i = 0; i < elevatorController.getFloorNum(); i++)
             {
                 boolean newButtonUp = elevatorController.getFloorButtonUp(i);
                 boolean newButtonDown = elevatorController.getFloorButtonUp(i);
-                if(newButtonUp != buttonPressedUp[i]){
+                if(newButtonUp != buttonPressedUp[i] || !upToDate){
                     buttonPressedUp[i] = newButtonUp;
                     client.publishMQTTMessage("FloorButtonUp/" + i + "/", Boolean.toString(buttonPressedUp[i]));
                 }
 
-                if(newButtonDown != buttonPressedDown[i]){
+                if(newButtonDown != buttonPressedDown[i] || !upToDate){
                     buttonPressedDown[i] = newButtonDown;
                     client.publishMQTTMessage("FloorButtonDown/" + i + "/", Boolean.toString(buttonPressedDown[i]));
                 }
@@ -125,8 +123,9 @@ public class BuildingStatus {
             // Check Elevator things
             for(int i = 0; i < elevatorNum; i++)
             {
-                elevators[i].checkStatus();
+                elevators[i].checkStatus(upToDate);
             }
+            upToDate = true;
         } catch (RemoteException e) {
             connectRMI();
         }

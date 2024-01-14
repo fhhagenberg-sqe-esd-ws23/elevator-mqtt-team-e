@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import sqelevator.IElevator;
 
-public class ElevatorTest {
+class ElevatorTest {
     Elevator elevator;
     @BeforeEach
     void SetUp(){
