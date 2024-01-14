@@ -15,10 +15,10 @@ public class ElevatorMain implements MqttCallback {
     private MqttWrapper mqttWrapper;
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
-    private static final String ControllerTopicMain = "ElevatorControllerMain/";
-    private static final String ControllerTopicRMI = "ElevatorControllerRMI/";
-    private static final String TopicElevatorNum = "NumberElevators/";
-    private static final String TopicFloorNum = "NumberFloors/";
+    private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
+    private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
+    private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
+    private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors = 99;
     private int numberOfElevators = 20;
     private ElevatorState[] state = new ElevatorState[99];
@@ -46,7 +46,7 @@ public class ElevatorMain implements MqttCallback {
 
         building = new BuildingStorage(numberOfFloors, numberOfElevators);
 
-        mqttWrapper.subscribe(ControllerTopicRMI + "#");
+        mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
     }
 
     protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
@@ -57,7 +57,7 @@ public class ElevatorMain implements MqttCallback {
             clientId = "building_controller_client";
         }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, ControllerTopicMain, this);  //URI, ClientId, Persistence
+        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_MAIN, this);  //URI, ClientId, Persistence
         return mqttWrapper;
     }
 
@@ -214,12 +214,12 @@ public class ElevatorMain implements MqttCallback {
         //System.out.println("received: " + var1 + " ~ " + var2);
 
         // Init topics
-        if(var1.equals(ControllerTopicRMI + TopicFloorNum)) {
+        if(var1.equals(CONTROLLER_TOPIC_RMI + TOPIC_FLOOR_NUM)) {
             numberOfFloors = Integer.parseInt(var2.toString());
             isNumberOfFloorsInitialised = true;
             return;
         }
-        if(var1.equals(ControllerTopicRMI + TopicElevatorNum)) {
+        if(var1.equals(CONTROLLER_TOPIC_RMI + TOPIC_ELEVATOR_NUM)) {
             numberOfElevators = Integer.parseInt(var2.toString());
             isNumberOfElevatorsInitialised = true;
             return;
