@@ -7,7 +7,8 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import sqelevator.IElevator;
 
 import java.util.Arrays;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 // MQTT to Algo
@@ -32,11 +33,11 @@ public class ElevatorMain implements MqttCallback {
 
     // Main
     public static void main(String[] args) {
-        ElevatorMain EvMain = new ElevatorMain("", "");
+        ElevatorMain evMain = new ElevatorMain("", "");
         MqttAdapter adapt = new MqttAdapter("","", "");
 
         adapt.startPollingElevatorState();
-        EvMain.runSim();
+        evMain.runSim();
     }
 
     public ElevatorMain(String mqtt, String clientId) {
@@ -189,7 +190,7 @@ public class ElevatorMain implements MqttCallback {
 
         while(!isNumberOfFloorsInitialised || !isNumberOfElevatorsInitialised);
 
-        Vector<Thread> threads = new Vector<>();
+        List<Thread> threads = new ArrayList<>();
         int threadNum = numberOfElevators;
         for(int i = 0; i < threadNum; i++)
         {
