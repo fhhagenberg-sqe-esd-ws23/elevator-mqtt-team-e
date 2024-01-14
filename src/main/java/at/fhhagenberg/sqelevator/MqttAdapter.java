@@ -19,16 +19,17 @@ public class MqttAdapter implements MqttCallback {
     private static final String controllerTopicRMI = "ElevatorControllerRMI/";
     private final BuildingStatus buildingStatus;
 
+    private boolean initDone;
+
     public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
         mqttWrapper = getMQTTClient(mqttConnectionString, clientId);
         mqttWrapper.publishMQTTMessage("Connect", "RMI Connection established.");
 
         buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
-        try {
-            buildingStatus.init();
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
+
+        buildingStatus.init();
+
+        initDone = false;
 
         mqttWrapper.subscribe(controllerTopicMain + "#");
     }
@@ -55,8 +56,9 @@ public class MqttAdapter implements MqttCallback {
                     Thread.currentThread().interrupt();
                     break;
                 }
-
-                buildingStatus.sendStatus();
+                if (initDone) {
+                    buildingStatus.sendStatus();
+                }
             }
         });
     }
@@ -73,10 +75,18 @@ public class MqttAdapter implements MqttCallback {
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
         //System.out.println("received: " + var1 + " ~ " + var2);
         String[] topics = var1.split("/");
+        if(topics.length < 2) {
+            //System.out.println("ignoring: " + var1 + " ~ " + var2);
+            return;
+        }
+        if(topics[1].equals("InitDone")) {
+            initDone = true;
+            return;
+        }
 
         // Topics with deeps 3
         if(topics.length < 3) {
-            System.out.println("ignoring: " + var1 + " ~ " + var2);
+            //System.out.println("ignoring: " + var1 + " ~ " + var2);
             return;
         }
         if(topics[2].equals("CommittedDirection")) {
