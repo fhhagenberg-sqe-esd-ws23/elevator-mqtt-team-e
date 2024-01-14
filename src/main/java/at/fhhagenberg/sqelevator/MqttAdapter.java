@@ -19,7 +19,6 @@ public class MqttAdapter {
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
-        startPollingElevatorState();
     }
 
     protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
@@ -34,7 +33,7 @@ public class MqttAdapter {
         return mqttWrapper;
     }
 
-    private void startPollingElevatorState() {
+    public void startPollingElevatorState() {
         this.executorService.submit(() -> {
             while (true) {
                 try {

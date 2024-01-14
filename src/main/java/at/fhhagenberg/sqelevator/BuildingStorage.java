@@ -31,12 +31,12 @@ public class BuildingStorage {
         }
     }
 
-    public int getNumberOfElevators()
+    public int getElevatorNum()
     {
         return numberOfElevators;
     }
 
-    public int getNumberOfFloors()
+    public int getFloorNum()
     {
         return numberOfFloors;
     }
