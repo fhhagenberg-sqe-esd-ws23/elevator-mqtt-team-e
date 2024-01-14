@@ -7,7 +7,7 @@ import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.client.MqttClient;
 
 public class MqttWrapper {
-    private MqttClient client;
+    private final MqttClient client;
 
     public MqttWrapper(String mqttConnectionString, String clientId)
     {
@@ -19,6 +19,16 @@ public class MqttWrapper {
         }
     }
 
+    public void publishRetainedMQTTMessage(String topic, String message) {
+        try {
+            MqttMessage mes = new MqttMessage(message.getBytes());
+            mes.setRetained(true);
+            client.publish(topic, mes);
+        } catch (MqttException e) {
+            System.err.println("Error publishing MQTT message: " + e.getMessage());
+        }
+    }
+
     public void publishMQTTMessage(String topic, String message) {
         try {
             client.publish(topic, new MqttMessage(message.getBytes()));
@@ -26,4 +36,11 @@ public class MqttWrapper {
             System.err.println("Error publishing MQTT message: " + e.getMessage());
         }
     }
+
+    public void subscribe(String topic) {
+        // Needs implementation! TODO
+
+    }
+
+
 }
