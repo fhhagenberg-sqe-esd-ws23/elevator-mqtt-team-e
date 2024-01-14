@@ -43,6 +43,8 @@ public class BuildingStatus {
                 floorNum = elevatorController.getFloorNum();
                 elevatorNum = elevatorController.getElevatorNum();
 
+                client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));
+                client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(floorNum));
                 // Retained Msg was sent
                 messageSent = true;
 
