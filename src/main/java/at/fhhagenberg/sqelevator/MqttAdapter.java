@@ -2,6 +2,7 @@ package at.fhhagenberg.sqelevator;
 
 import java.rmi.RemoteException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MqttAdapter {
     private MqttWrapper mqttWrapper;
@@ -34,6 +35,7 @@ public class MqttAdapter {
     }
 
     public void startPollingElevatorState() {
+        this.executorService = Executors.newSingleThreadExecutor();
         this.executorService.submit(() -> {
             while (true) {
                 try {
