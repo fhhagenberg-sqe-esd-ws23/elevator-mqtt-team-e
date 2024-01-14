@@ -38,7 +38,7 @@ public class MqttWrapper {
 
     public void publishMQTTMessage(String topic, String message) {
         try {
-            System.out.println(this.controllerTopic + topic + " : " + message);
+            //System.out.println(this.controllerTopic + topic + " : " + message);
             client.publish(this.controllerTopic + topic, new MqttMessage(message.getBytes()));
         } catch (MqttException e) {
             System.err.println("Error publishing MQTT message: " + e.getMessage());

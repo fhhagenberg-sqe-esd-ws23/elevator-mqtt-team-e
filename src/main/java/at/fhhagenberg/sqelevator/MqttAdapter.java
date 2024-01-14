@@ -69,10 +69,12 @@ public class MqttAdapter implements MqttCallback {
     public void mqttErrorOccurred(MqttException var1){}
     @Override
     public void messageArrived(String var1, MqttMessage var2) throws Exception {
-        System.out.println("received: " + var1 + " ~ " + var2);
+        //System.out.println("received: " + var1 + " ~ " + var2);
         String[] topics = var1.split("/");
+
+        // Topics with deeps 3
         if(topics.length < 3) {
-            System.out.println("yeet at 3");
+            System.out.println("ignoring: " + var1 + " ~ " + var2);
             return;
         }
         if(topics[2].equals("CommittedDirection")) {
