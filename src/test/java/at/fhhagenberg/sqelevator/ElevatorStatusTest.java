@@ -93,7 +93,7 @@ class ElevatorStatusTest {
         when(mockElevatorController.getElevatorButton(anyInt(), anyInt())).thenReturn(true);
 
         elevatorStatus.checkStatus(false);
-        assertEquals(mockElevatorController.getElevatorFloor(3), 1);
+        assertEquals(1, mockElevatorController.getElevatorFloor(3));
 
         verify(mockMqttClient, times(8)).publishMQTTMessage(topicCaptor.capture(), messageCaptor.capture());
 
@@ -143,7 +143,7 @@ class ElevatorStatusTest {
         when(mockElevatorController.getElevatorButton(anyInt(), anyInt())).thenReturn(true);
 
         elevatorStatus.checkStatus(true);
-        assertEquals(mockElevatorController.getElevatorFloor(3), 1);
+        assertEquals(1, mockElevatorController.getElevatorFloor(3));
 
         verify(mockMqttClient, times(8)).publishMQTTMessage(topicCaptor.capture(), messageCaptor.capture());
 
@@ -193,7 +193,7 @@ class ElevatorStatusTest {
         when(mockElevatorController.getElevatorButton(anyInt(), anyInt())).thenReturn(false);
 
         elevatorStatus.checkStatus(true);
-        assertEquals(mockElevatorController.getElevatorFloor(3), 1);
+        assertEquals(1, mockElevatorController.getElevatorFloor(3));
 
         verify(mockMqttClient, times(5)).publishMQTTMessage(topicCaptor.capture(), messageCaptor.capture());
 
@@ -236,7 +236,7 @@ class ElevatorStatusTest {
         when(mockElevatorController.getElevatorButton(anyInt(), anyInt())).thenReturn(false);
 
         elevatorStatus.checkStatus(false);
-        assertEquals(mockElevatorController.getElevatorFloor(3), 1);
+        assertEquals(1, mockElevatorController.getElevatorFloor(3));
 
         verify(mockMqttClient, times(8)).publishMQTTMessage(topicCaptor.capture(), messageCaptor.capture());
 
