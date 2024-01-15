@@ -26,7 +26,7 @@ public class ElevatorMain implements MqttCallback {
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
     private int numberOfElevators;
-    private ElevatorState[] state = new ElevatorState[99];
+    private ElevatorState[] state;
 
     private enum ElevatorState{
         UP,
@@ -37,11 +37,11 @@ public class ElevatorMain implements MqttCallback {
 
     // Main
     public static void main(String[] args) {
-        ElevatorMain evMain = new ElevatorMain("", "");
-        MqttAdapter adapt = new MqttAdapter("","", "");
+        ElevatorMain elevatorMain = new ElevatorMain("", "");
+        MqttAdapter rmiMqttAdapter = new MqttAdapter("","", "");
 
-        adapt.startPollingElevatorState();
-        evMain.runSim();
+        rmiMqttAdapter.startRMIPolling();
+        elevatorMain.runSim();
     }
 
     public ElevatorMain(String mqtt, String clientId) {
@@ -175,6 +175,7 @@ public class ElevatorMain implements MqttCallback {
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "SleepError");
             }
         }
     }
@@ -184,11 +185,13 @@ public class ElevatorMain implements MqttCallback {
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "SleepError");
             }
         }
     }
 
-    public void runSim(){
+    public void runSim() {
+
         // Wait for Init to finish
         while(!isNumberOfFloorsInitialised || !isNumberOfElevatorsInitialised);
 
@@ -196,12 +199,12 @@ public class ElevatorMain implements MqttCallback {
         state = new ElevatorState[numberOfElevators];
         Arrays.fill(state, ElevatorState.UNCOMMITTED);
         // Ack Init
+        // LOGGER.log(Level.INFO, "SendInitDone");
         mqttWrapper.publishMQTTMessage("InitDone" , "");
 
         List<Thread> threads = new ArrayList<>();
         int threadNum = numberOfElevators;
-        for(int i = 0; i < threadNum; i++)
-        {
+        for (int i = 0; i < threadNum; i++) {
             int finalI = i;
             threads.add(new Thread(() -> runElevatorBigBrain(finalI)));
             threads.get(i).start();
@@ -209,11 +212,11 @@ public class ElevatorMain implements MqttCallback {
     }
 
     @Override
-    public void disconnected(MqttDisconnectResponse var1){
+    public void disconnected(MqttDisconnectResponse var1) {
         // not needed
     }
     @Override
-    public void mqttErrorOccurred(MqttException var1){
+    public void mqttErrorOccurred(MqttException var1) {
         // not needed
     }
     @Override

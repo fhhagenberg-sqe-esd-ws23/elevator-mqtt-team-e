@@ -7,13 +7,14 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
+import java.rmi.RemoteException;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MqttAdapter implements MqttCallback {
-    private MqttWrapper mqttWrapper;
+    private final MqttWrapper mqttWrapper;
     private static final int POLLING_INTERVAL = 250;
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
@@ -23,14 +24,14 @@ public class MqttAdapter implements MqttCallback {
     private boolean initDone;
 
     public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
+        initDone = false;
+
         mqttWrapper = getMQTTClient(mqttConnectionString, clientId);
         mqttWrapper.publishMQTTMessage("Connect", "RMI Connection established.");
 
         buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
 
         buildingStatus.init();
-
-        initDone = false;
 
         mqttWrapper.subscribe(CONTROLLER_TOPIC_MAIN + "#");
     }
@@ -43,11 +44,11 @@ public class MqttAdapter implements MqttCallback {
             clientId = "mqttAdapter";
         }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_RMI, this);  //URI, ClientId, Persistence
-        return mqttWrapper;
+        return new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_RMI, this);  // URI, ClientId, Persistence
     }
 
-    public void startPollingElevatorState() {
+    public void startRMIPolling() {
+        //LOGGER.log(Level.INFO, "RMI polling start");
         ExecutorService executorService;
         executorService = Executors.newSingleThreadExecutor();
         executorService.submit(() -> {
@@ -82,6 +83,7 @@ public class MqttAdapter implements MqttCallback {
             return;
         }
         if(topics[1].equals("InitDone")) {
+            //LOGGER.log(Level.INFO, "InitDone");
             initDone = true;
             return;
         }

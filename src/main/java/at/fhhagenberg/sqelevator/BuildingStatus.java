@@ -16,7 +16,6 @@ public class BuildingStatus {
     private volatile boolean rmiConnected;
     private String rmiConnectionString;
     private ElevatorStatus[] elevators;
-    private int elevatorNum;
     private boolean upToDate;
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
@@ -40,7 +39,7 @@ public class BuildingStatus {
         do{
             try {
                 int floorNum = elevatorController.getFloorNum();
-                elevatorNum = elevatorController.getElevatorNum();
+                int elevatorNum = elevatorController.getElevatorNum();
 
                 client.publishRetainedMQTTMessage(TOPIC_ELEVATOR_NUM, Integer.toString(elevatorNum));
                 client.publishRetainedMQTTMessage(TOPIC_FLOOR_NUM, Integer.toString(floorNum));
@@ -73,19 +72,12 @@ public class BuildingStatus {
     }
 
     private void rmiConnect() {
-        //int errCount = 0;
-        //int maxErr = 50;
         do{
             try {
                 elevatorController = getRmiInterface(rmiConnectionString);
                 rmiConnected = true;
                 upToDate = false;
             } catch (RemoteException | MalformedURLException | NotBoundException e) {
-                //errCount++;
-                //if(errCount == maxErr){
-                //    rmiConnected = false;
-                //    break;
-                //}
                 rmiConnected = false;
             }
         } while(!rmiConnected);
@@ -121,7 +113,7 @@ public class BuildingStatus {
                 }
             }
             // Check Elevator things
-            for(int i = 0; i < elevatorNum; i++)
+            for(int i = 0; i < elevatorController.getElevatorNum(); i++)
             {
                 elevators[i].checkStatus(upToDate);
             }
