@@ -13,10 +13,10 @@ public class BuildingStatus {
 
     private final MqttWrapper client;
     private IElevator elevatorController;
-    private volatile boolean rmiConnected;
+    public volatile boolean rmiConnected;
     private String rmiConnectionString;
     private ElevatorStatus[] elevators;
-    private boolean upToDate;
+    public boolean upToDate;
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private boolean[] buttonPressedUp;
@@ -29,8 +29,6 @@ public class BuildingStatus {
         }
 
         this.client = client;
-
-        connectRMI();
     }
 
     public void init() {
@@ -71,7 +69,8 @@ public class BuildingStatus {
         rmiConnect();
     }
 
-    private void rmiConnect() {
+    public void rmiConnect() {
+
         do{
             try {
                 elevatorController = getRmiInterface(rmiConnectionString);
@@ -79,6 +78,7 @@ public class BuildingStatus {
                 upToDate = false;
             } catch (RemoteException | MalformedURLException | NotBoundException e) {
                 rmiConnected = false;
+                System.out.println("test");
             }
         } while(!rmiConnected);
     }
