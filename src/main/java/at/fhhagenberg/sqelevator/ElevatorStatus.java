@@ -22,36 +22,7 @@ public class ElevatorStatus {
         this.client = client;
         this.elevatorController = elevatorController;
         this.elevatorNum.set(elevatorNum);
-
-        elevatorInitStatus();
-    }
-
-    private void elevatorInitStatus() throws RemoteException {
-        elevatorButtons = new boolean[elevatorController.getFloorNum()];
-
-        publishInit("floorNum", floorNum, elevatorController.getElevatorFloor(elevatorNum.get()));
-        publishInit("position", position, elevatorController.getElevatorPosition(elevatorNum.get()));
-        publishInit("target", target, elevatorController.getTarget(elevatorNum.get()));
-        publishInit("committed_direction", committedDirection, elevatorController.getCommittedDirection(elevatorNum.get()));
-        publishInit("door_status", doorStatus, elevatorController.getElevatorDoorStatus(elevatorNum.get()));
-
-        publishInitElevatorButtons();
-    }
-
-    public void publishInit(String topic, AtomicInteger currentValue, int newValue) {
-            currentValue.set(newValue);
-
-            client.publishMQTTMessage(elevatorNum + "/" + topic, Integer.toString(newValue));
-    }
-
-    public void publishInitElevatorButtons() throws RemoteException {
-        int elevator = elevatorNum.get();
-        for(int i = 0; i < elevatorController.getFloorNum(); i++)
-        {
-            elevatorButtons[i] = elevatorController.getElevatorButton(elevator, i);
-            client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i,
-                    Boolean.toString(elevatorButtons[i]));
-        }
+        this.elevatorButtons = new boolean[elevatorController.getFloorNum()];
     }
 
     private void updateAndPublishIfChanged(String topic, AtomicInteger currentValue, int newValue, boolean upToDate) {
@@ -59,6 +30,10 @@ public class ElevatorStatus {
             currentValue.set(newValue);
             client.publishMQTTMessage(elevatorNum + "/" + topic, Integer.toString(newValue));
         }
+    }
+
+    void _updateAndPublishIfChanged(String topic, AtomicInteger currentValue, int newValue, boolean upToDate) {
+        updateAndPublishIfChanged(topic, currentValue, newValue, upToDate);
     }
 
     public void checkStatus(boolean upToDate) throws RemoteException {

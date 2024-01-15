@@ -1,6 +1,8 @@
 package at.fhhagenberg.sqelevator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class BuildingStorage {
@@ -17,13 +19,10 @@ public class BuildingStorage {
         numberOfFloors = floorNum;
         numberOfElevators = elevatorNum;
 
-        floors = new ArrayList<>();
-        elevators = new ArrayList<>();
 
-        for(int i = 0; i < numberOfFloors; i++)
-        {
-            floors.add(new Floor());
-        }
+        floors = new ArrayList<>(Collections.nCopies(numberOfFloors, new Floor()));
+
+        elevators = new ArrayList<>();
 
         for(int i = 0; i < numberOfElevators; i++)
         {
@@ -33,12 +32,12 @@ public class BuildingStorage {
 
     public int getElevatorNum()
     {
-        return numberOfElevators;
+        return elevators.size(); //numberOfElevators
     }
 
     public int getFloorNum()
     {
-        return numberOfFloors;
+        return floors.size(); //numberOfFloors
     }
 
     public boolean getFloorState(int floor, boolean up)
