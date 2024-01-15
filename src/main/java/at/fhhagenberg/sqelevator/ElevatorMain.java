@@ -175,7 +175,8 @@ public class ElevatorMain implements MqttCallback {
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "SleepError");
+                // Handle MqttMessages Based on Topics
+                LOGGER.log(Level.WARNING, String.format("Thread interrupted: ~ %s", e));
             }
         }
     }
@@ -185,7 +186,7 @@ public class ElevatorMain implements MqttCallback {
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "SleepError");
+                LOGGER.log(Level.WARNING, String.format("Thread interrupted: ~ %s", e));
             }
         }
     }
