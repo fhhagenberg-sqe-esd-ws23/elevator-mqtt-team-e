@@ -27,6 +27,7 @@ public class MqttAdapter implements MqttCallback {
         mqttWrapper.publishMQTTMessage("Connect", "RMI Connection established.");
 
         buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
+        buildingStatus.connectRMI();
 
         buildingStatus.init();
 
