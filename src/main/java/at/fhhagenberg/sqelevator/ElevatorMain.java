@@ -26,18 +26,24 @@ public class ElevatorMain implements MqttCallback {
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
     private int numberOfElevators;
-    private ElevatorState[] state;
+    private ElevatorState[] state = new ElevatorState[99];
 
-    private enum ElevatorState{
+    public enum ElevatorState {
         UP,
         DOWN,
         UNCOMMITTED
     }
-    private BuildingStorage building;
+    public BuildingStorage building;
+
+    private String mqttConnectionString;
+    private String clientID;
+
 
     // Main
     public static void main(String[] args) {
+
         ElevatorMain elevatorMain = new ElevatorMain("", "");
+        elevatorMain.init();
         MqttAdapter rmiMqttAdapter = new MqttAdapter("","", "");
 
         rmiMqttAdapter.startRMIPolling();
@@ -45,21 +51,24 @@ public class ElevatorMain implements MqttCallback {
     }
 
     public ElevatorMain(String mqtt, String clientId) {
-        mqttWrapper = getMQTTClient(mqtt, clientId);
+        this.mqttConnectionString = mqtt;
+        this.clientID = clientId;
 
-        mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
-    }
-
-    protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
         if(mqttConnectionString.isEmpty()) {
             mqttConnectionString = "tcp://localhost:1883";
         }
         if(clientId.isEmpty()){
             clientId = "building_controller_client";
         }
+    }
 
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_MAIN, this);  //URI, ClientId, Persistence
-        return mqttWrapper;
+    public void init() {
+        mqttWrapper = getMQTTClient();
+        mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
+    }
+
+    public MqttWrapper getMQTTClient() {
+        return new MqttWrapper(this.mqttConnectionString, this.clientID, CONTROLLER_TOPIC_MAIN, this);  //URI, ClientId, Persistence
     }
 
     public void runElevatorBigBrain(int elevator){
@@ -83,7 +92,7 @@ public class ElevatorMain implements MqttCallback {
         }
     }
 
-    private ElevatorState moveElevatorUp(int elevator, int sleepTime) {
+    public ElevatorState moveElevatorUp(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.UP;
         int nextFloor = getNextFloor(elevator,true);
         int currentFloor = building.getCurrentFloor(elevator);
@@ -106,7 +115,7 @@ public class ElevatorMain implements MqttCallback {
         return tmpState;
     }
 
-    private int getNextFloor(int elevator, boolean dirUp) {
+    public int getNextFloor(int elevator, boolean dirUp) {
         int nextFloor = -1;
         boolean[] elevButton = building.getFloorButtonStatus(elevator);
         if(dirUp)
@@ -133,7 +142,7 @@ public class ElevatorMain implements MqttCallback {
                     }
                 }
             }
-            if(nextFloor == -1){
+            if(nextFloor == -1) {
                 return getNextFloor(elevator, false);
             }
         } else {
@@ -166,7 +175,7 @@ public class ElevatorMain implements MqttCallback {
         return nextFloor;
     }
 
-    private void moveToFloor(int elevator, ElevatorState state, int floor, int sleepTime) {
+    public void moveToFloor(int elevator, ElevatorState state, int floor, int sleepTime) {
 
         mqttWrapper.publishMQTTMessage(elevator + "/CommittedDirection/" , state.toString());
         mqttWrapper.publishMQTTMessage(elevator + "/Target/" , Integer.toString(floor));
@@ -191,8 +200,7 @@ public class ElevatorMain implements MqttCallback {
         }
     }
 
-    public void runSim() {
-
+    public void runSim(){
         // Wait for Init to finish
         while(!isNumberOfFloorsInitialised || !isNumberOfElevatorsInitialised);
 
@@ -200,12 +208,12 @@ public class ElevatorMain implements MqttCallback {
         state = new ElevatorState[numberOfElevators];
         Arrays.fill(state, ElevatorState.UNCOMMITTED);
         // Ack Init
-        // LOGGER.log(Level.INFO, "SendInitDone");
         mqttWrapper.publishMQTTMessage("InitDone" , "");
 
         List<Thread> threads = new ArrayList<>();
         int threadNum = numberOfElevators;
-        for (int i = 0; i < threadNum; i++) {
+        for(int i = 0; i < threadNum; i++)
+        {
             int finalI = i;
             threads.add(new Thread(() -> runElevatorBigBrain(finalI)));
             threads.get(i).start();
@@ -213,11 +221,11 @@ public class ElevatorMain implements MqttCallback {
     }
 
     @Override
-    public void disconnected(MqttDisconnectResponse var1) {
+    public void disconnected(MqttDisconnectResponse var1){
         // not needed
     }
     @Override
-    public void mqttErrorOccurred(MqttException var1) {
+    public void mqttErrorOccurred(MqttException var1){
         // not needed
     }
     @Override
