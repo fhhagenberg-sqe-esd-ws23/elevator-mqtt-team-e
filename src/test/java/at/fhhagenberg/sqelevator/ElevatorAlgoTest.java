@@ -14,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import sqelevator.IElevator;
 
-import java.rmi.RemoteException;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -43,7 +41,7 @@ class ElevatorAlgoTest {
     }
 
     @Test
-    void testMessageArrivedInit() throws Exception {
+    void testMessageArrivedInit() {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
         BuildingStorage building = new BuildingStorage(5,1);
 
@@ -65,7 +63,7 @@ class ElevatorAlgoTest {
     }
 
     @Test
-    void testMessageArrivedDepth3() throws Exception {
+    void testMessageArrivedDepth3() {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
         BuildingStorage building = new BuildingStorage(5,1);
 
@@ -104,7 +102,7 @@ class ElevatorAlgoTest {
     }
 
     @Test
-    void testMessageArrivedDepth4() throws Exception {
+    void testMessageArrivedDepth4() {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
         BuildingStorage building = new BuildingStorage(5,1);
 
