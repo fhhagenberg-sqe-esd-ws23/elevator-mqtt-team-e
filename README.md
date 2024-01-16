@@ -1,3 +1,28 @@
+# Instructions for Downloading and Installing the Elevator Controller
+
+## Step 1: Download the package
+
+   1. Navigate to the "Releases" section of the GitHub repository.
+   2. Download the latest release, which contains the .jar file of the Elevator Controller (e.g., ElevatorController_Team_E-1.0.0.jar).
+
+## Step 2: Unpacking the archive
+
+   1. Once the download is complete, locate the downloaded file on your computer.
+   2. Extract the contents of the archive, if it's in a compressed format, to a folder of your choice.
+
+## Step 3: Running the Elevator Controller
+
+   1. Before launching the Elevator Controller, ensure that the Elevator Simulator is already started and running.
+   2. Open a command console or terminal window.
+   3. Navigate to the folder where you extracted the .jar file.
+   4. Run the .jar file by executing the command: ```java -jar ElevatorController_Team_E-1.0.0.jar.```
+   5. If you want to stop the Elevator Controller press ```Ctrl + C ```
+
+This command starts the Elevator Controller application. Ensure that Java is installed on your system and the path to java is correctly set up in your environment variables for the command to work properly.
+By following these steps, you should have the Elevator Controller up and running, interfacing with the Elevator Simulator as expected.
+
+___
+
 # Test Concept for Elevator Controller
 
 ## Overview:
