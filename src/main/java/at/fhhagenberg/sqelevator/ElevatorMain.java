@@ -18,48 +18,85 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 public class ElevatorMain implements MqttCallback {
     private static final Logger LOGGER = Logger.getLogger(ElevatorMain.class.getName());
     private MqttWrapper mqttWrapper;
+
+    public MqttWrapper getMqttWrapper(){
+        return this.mqttWrapper;
+    }
+
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
+
+    public boolean isNumberOfElevatorsInitialised() {
+        return isNumberOfElevatorsInitialised;
+    }
+    public boolean isNumberOfFloorsInitialised() {
+        return isNumberOfFloorsInitialised;
+    }
+
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
     private int numberOfElevators;
-    private ElevatorState[] state = new ElevatorState[99];
+    private ElevatorState[] state;
 
-    private enum ElevatorState{
+    public enum ElevatorState {
         UP,
         DOWN,
         UNCOMMITTED
     }
     private BuildingStorage building;
 
+
+    public void setBuilding(int floor, int elev) {
+        this.building = new BuildingStorage(floor, elev);
+    }
+    public BuildingStorage getBuilding(){
+        return this.building;
+    }
+
+    private String mqttConnectionString;
+
+    public String getMqttConnectionString(){
+        return mqttConnectionString;
+    }
+    private String clientID;
+    public String getClientID(){
+        return clientID;
+    }
+
     // Main
     public static void main(String[] args) {
-        ElevatorMain evMain = new ElevatorMain("", "");
-        MqttAdapter adapt = new MqttAdapter("","", "");
 
-        adapt.startPollingElevatorState();
-        evMain.runSim();
+        ElevatorMain elevatorMain = new ElevatorMain("", "");
+        elevatorMain.init();
+        MqttAdapter rmiMqttAdapter = new MqttAdapter("","", "");
+        rmiMqttAdapter.init();
+
+        rmiMqttAdapter.startRMIPolling();
+        elevatorMain.runSim();
     }
 
     public ElevatorMain(String mqtt, String clientId) {
-        mqttWrapper = getMQTTClient(mqtt, clientId);
+        this.mqttConnectionString = mqtt;
+        this.clientID = clientId;
 
+        if(this.mqttConnectionString.isEmpty()) {
+            this.mqttConnectionString = "tcp://localhost:1883";
+        }
+        if(this.clientID.isEmpty()){
+            this.clientID = "building_controller_client";
+        }
+    }
+
+    public void init() {
+        mqttWrapper = getMQTTClient();
         mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
     }
 
-    protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
-        if(mqttConnectionString.isEmpty()) {
-            mqttConnectionString = "tcp://localhost:1883";
-        }
-        if(clientId.isEmpty()){
-            clientId = "building_controller_client";
-        }
-
-        mqttWrapper = new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_MAIN, this);  //URI, ClientId, Persistence
-        return mqttWrapper;
+    public MqttWrapper getMQTTClient() {
+        return new MqttWrapper(this.mqttConnectionString, this.clientID, CONTROLLER_TOPIC_MAIN, this);  //URI, ClientId, Persistence
     }
 
     public void runElevatorBigBrain(int elevator){
@@ -83,7 +120,7 @@ public class ElevatorMain implements MqttCallback {
         }
     }
 
-    private ElevatorState moveElevatorUp(int elevator, int sleepTime) {
+    public ElevatorState moveElevatorUp(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.UP;
         int nextFloor = getNextFloor(elevator,true);
         int currentFloor = building.getCurrentFloor(elevator);
@@ -106,7 +143,7 @@ public class ElevatorMain implements MqttCallback {
         return tmpState;
     }
 
-    private int getNextFloor(int elevator, boolean dirUp) {
+    public int getNextFloor(int elevator, boolean dirUp) {
         int nextFloor = -1;
         boolean[] elevButton = building.getFloorButtonStatus(elevator);
         if(dirUp)
@@ -133,7 +170,7 @@ public class ElevatorMain implements MqttCallback {
                     }
                 }
             }
-            if(nextFloor == -1){
+            if(nextFloor == -1) {
                 return getNextFloor(elevator, false);
             }
         } else {
@@ -166,7 +203,7 @@ public class ElevatorMain implements MqttCallback {
         return nextFloor;
     }
 
-    private void moveToFloor(int elevator, ElevatorState state, int floor, int sleepTime) {
+    public void moveToFloor(int elevator, ElevatorState state, int floor, int sleepTime) {
 
         mqttWrapper.publishMQTTMessage(elevator + "/CommittedDirection/" , state.toString());
         mqttWrapper.publishMQTTMessage(elevator + "/Target/" , Integer.toString(floor));

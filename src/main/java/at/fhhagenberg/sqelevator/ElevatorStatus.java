@@ -25,6 +25,18 @@ public class ElevatorStatus {
         this.elevatorButtons = new boolean[elevatorController.getFloorNum()];
     }
 
+    public void publishElevatorButtons(boolean upToDate) throws RemoteException {
+        for(int i = 0; i < elevatorController.getFloorNum(); i++)
+        {
+            boolean newButtonState = elevatorController.getElevatorButton(elevatorNum.get(), i);
+            if(newButtonState != elevatorButtons[i] || !upToDate)
+            {
+                elevatorButtons[i] = newButtonState;
+                client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i, Boolean.toString(elevatorButtons[i]));
+            }
+        }
+    }
+
     private void updateAndPublishIfChanged(String topic, AtomicInteger currentValue, int newValue, boolean upToDate) {
         if (newValue != currentValue.get() || !upToDate) {
             currentValue.set(newValue);
@@ -45,14 +57,6 @@ public class ElevatorStatus {
         updateAndPublishIfChanged("committed_direction", committedDirection, elevatorController.getCommittedDirection(elevator), upToDate);
         updateAndPublishIfChanged("door_status", doorStatus, elevatorController.getElevatorDoorStatus(elevator), upToDate);
 
-        for(int i = 0; i < elevatorController.getFloorNum(); i++)
-        {
-            boolean newButtonState = elevatorController.getElevatorButton(elevator, i);
-            if(newButtonState != elevatorButtons[i] || !upToDate)
-            {
-                elevatorButtons[i] = newButtonState;
-                client.publishMQTTMessage(elevatorNum + "/FloorButton/" + i, Boolean.toString(elevatorButtons[i]));
-            }
-        }
+        publishElevatorButtons(upToDate);
     }
 }
