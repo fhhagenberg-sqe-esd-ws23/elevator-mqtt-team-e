@@ -15,7 +15,7 @@
    1. Before launching the Elevator Controller, ensure that the Elevator Simulator is already started and running.
    2. Open a command console or terminal window.
    3. Navigate to the folder where you extracted the .jar file.
-   4. Run the .jar file by executing the command: ```java -jar ElevatorController_Team_E-1.0.0.jar```
+   4. Run the .jar file by executing the command: ```java -jar .\ElevatorController_Team_E-1.0.0.jar```
    5. If you want to stop the Elevator Controller press ```Ctrl + C```.
 
 This command starts the Elevator Controller application. Ensure that Java is installed on your system and the path to java is correctly set up in your environment variables for the command to work properly.
