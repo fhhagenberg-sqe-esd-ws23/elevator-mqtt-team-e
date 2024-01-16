@@ -48,14 +48,6 @@ class ElevatorMainTest {
     }
 
     @Test
-    void getMqttClient() {
-        ElevatorMain = new ElevatorMain("asd", "dsa");
-
-        MqttWrapper mqtt = ElevatorMain.getMQTTClient();
-        assertEquals(mqtt, ElevatorMain.getMqttWrapper());
-    }
-
-    @Test
     void testMessageArrivedInit() throws Exception {
         ElevatorMain elMain = new ElevatorMain("", "");
 
@@ -70,9 +62,64 @@ class ElevatorMainTest {
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberFloors/", floor);
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberElevators/", elv);
 
-        elMain.building = new BuildingStorage(5, 1);
+        elMain.setBuilding(5, 1);
 
         assertTrue(elMain.isNumberOfFloorsInitialised());
         assertTrue(elMain.isNumberOfElevatorsInitialised());
+    }
+
+    @Test
+    void testMessageArrivedDepth3() throws Exception {
+        ElevatorMain elMain = new ElevatorMain("", "");
+
+        String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
+
+        elMain.setBuilding(5, 1);
+
+        MqttMessage msg = new MqttMessage("5".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "dummy/", msg);
+
+        msg = new MqttMessage("true".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "FloorButtonUp/0/", msg);
+        assertTrue(elMain.getBuilding().getFloorState(0, true));
+
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "FloorButtonDown/0/", msg);
+        assertTrue(elMain.getBuilding().getFloorState(0, false));
+
+        msg = new MqttMessage("1".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/floorNum/", msg);
+        assertEquals(1, elMain.getBuilding().getCurrentFloor(0));
+
+        msg = new MqttMessage("1".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/position/", msg);
+
+
+        msg = new MqttMessage("1".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/target/", msg);
+        assertEquals(1, elMain.getBuilding().getTargetFloor(0));
+
+        msg = new MqttMessage("1".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/committed_direction/", msg);
+        assertEquals(1, elMain.getBuilding().getCommittedDirection(0));
+
+        msg = new MqttMessage("1".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/door_status/", msg);
+        assertEquals(1, elMain.getBuilding().getDoorStatus(0));
+    }
+
+    @Test
+    void testMessageArrivedDepth4() throws Exception {
+        ElevatorMain elMain = new ElevatorMain("", "");
+
+        String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
+
+        elMain.setBuilding(5, 1);
+
+        MqttMessage msg = new MqttMessage("5".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "dummy/dummy/", msg);
+
+        msg = new MqttMessage("true".getBytes());
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/FloorButton/0", msg);
+        assertTrue(elMain.getBuilding().getFloorButtonStatus(0)[0]);
     }
 }

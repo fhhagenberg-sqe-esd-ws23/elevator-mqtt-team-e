@@ -46,8 +46,12 @@ public class ElevatorMain implements MqttCallback {
         DOWN,
         UNCOMMITTED
     }
-    public BuildingStorage building;
+    private BuildingStorage building;
 
+
+    public BuildingStorage setBuilding(int floor, int elev) {
+        return this.building = new BuildingStorage(floor, elev);
+    }
     public BuildingStorage getBuilding(){
         return this.building;
     }
@@ -59,7 +63,7 @@ public class ElevatorMain implements MqttCallback {
     }
     private String clientID;
     public String getClientID(){
-        return mqttConnectionString;
+        return clientID;
     }
 
     // Main
