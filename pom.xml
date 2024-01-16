@@ -123,6 +123,7 @@
                 <configuration>
                     <excludedClasses>
                         <param>at.fhhagenberg.sqelevator.MqttWrapper</param>
+                        <param>at.fhhagenberg.sqelevator.Main</param>
                     </excludedClasses>
                 </configuration>
             </plugin>

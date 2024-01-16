@@ -7,14 +7,12 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
-import java.rmi.RemoteException;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MqttAdapter implements MqttCallback {
-    private MqttWrapper mqttWrapper;
     private static final int POLLING_INTERVAL = 250;
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
@@ -63,8 +61,7 @@ public class MqttAdapter implements MqttCallback {
 
     public void init() {
         initDone = false;
-
-        mqttWrapper = getMQTTClient(this.mqttConnectionString, this.clientID);
+        MqttWrapper mqttWrapper = getMQTTClient(this.mqttConnectionString, this.clientID);
         mqttWrapper.publishMQTTMessage("Connect", "RMI Connection established.");
 
         buildingStatus = new BuildingStatus(mqttWrapper, this.rmiConnectionString);
@@ -80,7 +77,6 @@ public class MqttAdapter implements MqttCallback {
     }
 
     public void startRMIPolling() {
-        //LOGGER.log(Level.INFO, "RMI polling start");
         ExecutorService executorService;
         executorService = Executors.newSingleThreadExecutor();
         executorService.submit(() -> {
@@ -115,7 +111,6 @@ public class MqttAdapter implements MqttCallback {
             return;
         }
         if(topics[1].equals("InitDone")) {
-            //LOGGER.log(Level.INFO, "InitDone");
             initDone = true;
             return;
         }

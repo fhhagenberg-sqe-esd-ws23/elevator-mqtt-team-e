@@ -22,7 +22,7 @@ public class BuildingStatus {
     public IElevator getElevatorController(){
         return this.elevatorController;
     }
-    public volatile boolean rmiConnected;
+    private volatile boolean rmiConnected;
     private String rmiConnectionString;
     public String getRmiConnectionString(){
         return this.rmiConnectionString;
