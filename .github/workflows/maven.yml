@@ -33,7 +33,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: mvn -B package --batch-mode --update-snapshots --file pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fhhagenberg-sqe-esd-ws23_elevator-mqtt-team-e
     -name: Package App
-      run: mvn install -B
+      run: mvn -B install
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     #- name: Update dependency graph
