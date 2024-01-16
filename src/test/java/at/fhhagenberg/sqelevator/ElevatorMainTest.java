@@ -1,5 +1,6 @@
 package at.fhhagenberg.sqelevator;
 
+import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,19 +27,15 @@ class ElevatorMainTest {
 
     @Test
     void testConstructor() {
-        ElevatorMain = new ElevatorMain("asd", "dsa");
+        ElevatorMain elMain0 = new ElevatorMain("", "");
+        assertNotNull(elMain0);
+        assertEquals("tcp://localhost:1883", elMain0.getMqttConnectionString());
+        assertEquals("building_controller_client", elMain0.getClientID());
 
-        assertNotNull(ElevatorMain);
-        assertEquals("asd", ElevatorMain.getMqttConnectionString());;
-        assertEquals("dsa", ElevatorMain.getClientID());
-    }
-
-    void testConstructorEmptyStrings() {
-        ElevatorMain = new ElevatorMain("", "");
-
-        assertNotNull(ElevatorMain);
-        assertEquals("tcp://localhost:1883", ElevatorMain.getMqttConnectionString());;
-        assertEquals("building_controller_client", ElevatorMain.getClientID());
+        ElevatorMain elMain1 = new ElevatorMain("test1", "test2");
+        assertNotNull(elMain1);
+        assertEquals("test1", elMain1.getMqttConnectionString());
+        assertEquals("test2", elMain1.getClientID());
     }
 
     @Test
@@ -58,7 +55,24 @@ class ElevatorMainTest {
         assertEquals(mqtt, ElevatorMain.getMqttWrapper());
     }
 
+    @Test
+    void testMessageArrivedInit() throws Exception {
+        ElevatorMain elMain = new ElevatorMain("", "");
 
+        String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
+        MqttMessage floor = new MqttMessage("5".getBytes());
+        MqttMessage elv = new MqttMessage("1".getBytes());
 
+        assertFalse(elMain.isNumberOfFloorsInitialised());
+        assertFalse(elMain.isNumberOfElevatorsInitialised());
+
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberFloors/", floor);
+        elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberElevators/", elv);
+
+        elMain.building = new BuildingStorage(5, 1);
+
+        assertTrue(elMain.isNumberOfFloorsInitialised());
+        assertTrue(elMain.isNumberOfElevatorsInitialised());
+    }
 }
