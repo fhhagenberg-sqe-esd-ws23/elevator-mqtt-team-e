@@ -12,54 +12,40 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import sqelevator.IElevator;
 
 import java.rmi.RemoteException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-// NOT DONE!!!!
 class ElevatorAlgoTest {
 
     @Mock
     private MqttWrapper mockMqttClient;
-    @Mock
-    private ElevatorAlgo mockElevatorAlgo;
 
     @BeforeEach
-    void setUp() throws RemoteException {
+    void setUp() {
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
     void testConstructor() {
-        ElevatorAlgo elMain0 = new ElevatorAlgo("", "");
-        assertNotNull(elMain0);
-        assertEquals("tcp://localhost:1883", elMain0.getMqttConnectionString());
-        assertEquals("building_controller_client", elMain0.getClientID());
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        assertNotNull(elAlgo);
+        assertEquals("tcp://localhost:1883", elAlgo.getMqttConnectionString());
+        assertEquals("building_controller_client", elAlgo.getClientID());
 
-        ElevatorAlgo elMain1 = new ElevatorAlgo("test1", "test2");
-        assertNotNull(elMain1);
-        assertEquals("test1", elMain1.getMqttConnectionString());
-        assertEquals("test2", elMain1.getClientID());
-    }
-
-    @Test
-    void testInit() {
-
-        doNothing().when(mockMqttClient).subscribe(anyString());
-
-        when(mockElevatorAlgo.getMQTTClient()).thenReturn(mockMqttClient);
-
-        mockElevatorAlgo.init();
-        verify(mockElevatorAlgo).init();
-
+        ElevatorAlgo elAlgo1 = new ElevatorAlgo("test1", "test2");
+        assertNotNull(elAlgo1);
+        assertEquals("test1", elAlgo1.getMqttConnectionString());
+        assertEquals("test2", elAlgo1.getClientID());
     }
 
     @Test
     void testMessageArrivedInit() throws Exception {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
+        BuildingStorage building = new BuildingStorage(5,1);
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
@@ -72,7 +58,7 @@ class ElevatorAlgoTest {
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberFloors/", floor);
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "NumberElevators/", elv);
 
-        elMain.setBuilding(5, 1);
+        elMain.setBuilding(building);
 
         assertTrue(elMain.isNumberOfFloorsInitialised());
         assertTrue(elMain.isNumberOfElevatorsInitialised());
@@ -81,10 +67,11 @@ class ElevatorAlgoTest {
     @Test
     void testMessageArrivedDepth3() throws Exception {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
+        BuildingStorage building = new BuildingStorage(5,1);
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
-        elMain.setBuilding(5, 1);
+        elMain.setBuilding(building);
 
         MqttMessage msg = new MqttMessage("5".getBytes());
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "dummy/", msg);
@@ -119,10 +106,11 @@ class ElevatorAlgoTest {
     @Test
     void testMessageArrivedDepth4() throws Exception {
         ElevatorAlgo elMain = new ElevatorAlgo("", "");
+        BuildingStorage building = new BuildingStorage(5,1);
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
-        elMain.setBuilding(5, 1);
+        elMain.setBuilding(building);
 
         MqttMessage msg = new MqttMessage("5".getBytes());
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "dummy/dummy/", msg);
@@ -132,15 +120,126 @@ class ElevatorAlgoTest {
         assertTrue(elMain.getBuilding().getFloorButtonStatus(0)[0]);
     }
 
-    public class MqttTokenImpl implements IMqttToken {
+    @Test
+    void testMoveElevatorUp() {
+        int floors = 3;
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        BuildingStorage mockBuilding = mock(BuildingStorage.class);
+        elAlgo.setBuilding(mockBuilding);
+        elAlgo.setMqttWrapper(mockMqttClient);
+        elAlgo.setNumberOfFloors(floors);
+
+        boolean[] elevButtons = {false, false, true};
+        when(mockBuilding.getFloorButtonStatus(0)).thenReturn(elevButtons);
+
+        for(int i = 1; i < floors; i++){
+            when(mockBuilding.getFloorState(i, true)).thenReturn(false);
+        }
+        when(mockBuilding.getCurrentFloor(0)).thenReturn(0, 2);
+
+        var state = elAlgo.moveElevatorUp(0, 0);
+
+        assertEquals(ElevatorAlgo.ElevatorState.UP, state);
+        verify(mockMqttClient).publishMQTTMessage(0 + "/CommittedDirection/" , state.toString());
+        verify(mockMqttClient).publishMQTTMessage(0 + "/Target/" , Integer.toString(2));
+    }
+
+    @Test
+    void testMoveElevatorUpOutsidePressed() {
+        int floors = 3;
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        BuildingStorage mockBuilding = mock(BuildingStorage.class);
+        elAlgo.setBuilding(mockBuilding);
+        elAlgo.setMqttWrapper(mockMqttClient);
+        elAlgo.setNumberOfFloors(floors);
+
+        boolean[] elevButtons = {false, false, true};
+        when(mockBuilding.getFloorButtonStatus(0)).thenReturn(elevButtons);
+
+        boolean[] floorButtons = {false, true, false};
+        for(int i = 1; i < floors; i++){
+            when(mockBuilding.getFloorState(i, true)).thenReturn(floorButtons[i]);
+        }
+        when(mockBuilding.getCurrentFloor(0)).thenReturn(0, 1);
+
+        var state = elAlgo.moveElevatorUp(0, 0);
+
+        assertEquals(ElevatorAlgo.ElevatorState.UP, state);
+        verify(mockMqttClient).publishMQTTMessage(0 + "/CommittedDirection/" , state.toString());
+        verify(mockMqttClient).publishMQTTMessage(0 + "/Target/" , Integer.toString(1));
+    }
+
+    @Test
+    void testMoveElevatorUpGoDown() {
+        int floors = 3;
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        BuildingStorage mockBuilding = mock(BuildingStorage.class);
+        elAlgo.setBuilding(mockBuilding);
+        elAlgo.setMqttWrapper(mockMqttClient);
+        elAlgo.setNumberOfFloors(floors);
+
+        boolean[] elevButtons = {true, false, false};
+        when(mockBuilding.getFloorButtonStatus(0)).thenReturn(elevButtons);
+
+        for(int i = 1; i >= 0; i--){
+            when(mockBuilding.getFloorState(i, false)).thenReturn(false);
+        }
+        when(mockBuilding.getCurrentFloor(0)).thenReturn(2,2, 2, 0);
+
+        var state = elAlgo.moveElevatorUp(0, 0);
+
+        assertEquals(ElevatorAlgo.ElevatorState.DOWN, state);
+        verify(mockMqttClient).publishMQTTMessage(0 + "/CommittedDirection/" , state.toString());
+        verify(mockMqttClient).publishMQTTMessage(0 + "/Target/" , Integer.toString(0));
+    }
+
+    @Test
+    void testMoveElevatorDown() {
+        int floors = 3;
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        BuildingStorage mockBuilding = mock(BuildingStorage.class);
+        elAlgo.setBuilding(mockBuilding);
+        elAlgo.setMqttWrapper(mockMqttClient);
+        elAlgo.setNumberOfFloors(floors);
+
+        boolean[] elevButtons = {true, false, false};
+        when(mockBuilding.getFloorButtonStatus(0)).thenReturn(elevButtons);
+
+        boolean[] floorButtons = {false, true, false};
+        for(int i = 1; i >= 0; i--){
+            when(mockBuilding.getFloorState(i, false)).thenReturn(floorButtons[i]);
+        }
+        when(mockBuilding.getCurrentFloor(0)).thenReturn(2, 2, 1);
+
+        var state = elAlgo.moveElevatorDown(0, 0);
+
+        assertEquals(ElevatorAlgo.ElevatorState.DOWN, state);
+        verify(mockMqttClient).publishMQTTMessage(0 + "/CommittedDirection/" , state.toString());
+        verify(mockMqttClient).publishMQTTMessage(0 + "/Target/" , Integer.toString(1));
+    }
+
+    @Test
+    void testWaitForDoorsOpen() {
+        ElevatorAlgo elAlgo = new ElevatorAlgo("", "");
+        BuildingStorage mockBuilding = mock(BuildingStorage.class);
+        elAlgo.setBuilding(mockBuilding);
+        when(mockBuilding.getDoorStatus(0)).thenReturn(IElevator.ELEVATOR_DOORS_CLOSED, IElevator.ELEVATOR_DOORS_OPEN);
+
+        elAlgo.waitForDoorsOpen(0, 1);
+
+        verify(mockBuilding, times(2)).getDoorStatus(0);
+    }
+
+
+    public static class MqttTokenImpl implements IMqttToken {
 
         @Override
-        public void waitForCompletion() throws MqttException {
+        public void waitForCompletion() {
 
         }
 
         @Override
-        public void waitForCompletion(long l) throws MqttException {
+        public void waitForCompletion(long l) {
 
         }
 
@@ -215,7 +314,7 @@ class ElevatorAlgoTest {
         }
 
         @Override
-        public MqttMessage getMessage() throws MqttException {
+        public MqttMessage getMessage() {
             return null;
         }
 
