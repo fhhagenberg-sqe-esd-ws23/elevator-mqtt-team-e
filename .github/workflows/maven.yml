@@ -33,12 +33,12 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: mvn -B package --batch-mode --update-snapshots --file pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fhhagenberg-sqe-esd-ws23_elevator-mqtt-team-e
     - name: Publish JAR
-      run: cp target/*.jar $GITHUB_WORKSPACE
+      run: cp target/mqtt*.jar $GITHUB_WORKSPACE
     - name: Upload JAR to artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ElevatorSim
-        path: $GITHUB_WORKSPACE/ElevatorSim.jar
+        path: $GITHUB_WORKSPACE/*.jar
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     #- name: Update dependency graph
