@@ -36,6 +36,7 @@ public class ElevatorAlgo implements MqttCallback {
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
+    private boolean isRunning;
     public void setNumberOfFloors(int num){
         this.numberOfFloors = num;
     }
@@ -81,6 +82,7 @@ public class ElevatorAlgo implements MqttCallback {
     public void init() {
         mqttWrapper = getMQTTClient();
         mqttWrapper.subscribe(CONTROLLER_TOPIC_RMI + "#");
+        this.isRunning = true;
     }
 
     public MqttWrapper getMQTTClient() {
@@ -90,7 +92,7 @@ public class ElevatorAlgo implements MqttCallback {
     public void runElevatorBigBrain(int elevator){
         final int sleepTime = 10;
 
-        while (true) {
+        while (isRunning) {
             switch (state[elevator]) {
                 case UP:
                     state[elevator] = moveElevatorUp(elevator, sleepTime);
@@ -152,7 +154,6 @@ public class ElevatorAlgo implements MqttCallback {
                     if(i < nextFloor)
                     {
                         nextFloor = i;
-                    } else {
                         break;
                     }
                 }
@@ -179,8 +180,6 @@ public class ElevatorAlgo implements MqttCallback {
                     if(i > nextFloor)
                     {
                         nextFloor = i;
-                        break;
-                    } else {
                         break;
                     }
                 }
