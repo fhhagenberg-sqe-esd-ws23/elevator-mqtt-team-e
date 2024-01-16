@@ -3,7 +3,7 @@
 ## Step 1: Download the package
 
    1. Navigate to the "Releases" section of the GitHub repository.
-   2. Download the latest release, which contains the .jar file of the Elevator Controller (e.g., ElevatorController_Team_E-1.0.0.jar).
+   2. Download the package in the latest release, which contains the .jar file of the Elevator Controller (e.g., ElevatorController_Team_E-1.0.0.jar).
 
 ## Step 2: Unpacking the archive
 
