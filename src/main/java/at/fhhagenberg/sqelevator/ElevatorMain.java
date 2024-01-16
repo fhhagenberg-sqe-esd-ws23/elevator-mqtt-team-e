@@ -20,13 +20,21 @@ public class ElevatorMain implements MqttCallback {
     private MqttWrapper mqttWrapper;
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
+
+    public boolean isNumberOfElevatorsInitialised() {
+        return isNumberOfElevatorsInitialised;
+    }
+    public boolean isNumberOfFloorsInitialised() {
+        return isNumberOfFloorsInitialised;
+    }
+
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
     private int numberOfElevators;
-    private ElevatorState[] state = new ElevatorState[99];
+    private ElevatorState[] state;
 
     public enum ElevatorState {
         UP,
@@ -37,6 +45,13 @@ public class ElevatorMain implements MqttCallback {
 
     private String mqttConnectionString;
     private String clientID;
+
+    public String getMqttConnectionString() {
+        return mqttConnectionString;
+    }
+    public String getClientID() {
+        return clientID;
+    }
 
 
     // Main
@@ -54,11 +69,11 @@ public class ElevatorMain implements MqttCallback {
         this.mqttConnectionString = mqtt;
         this.clientID = clientId;
 
-        if(mqttConnectionString.isEmpty()) {
-            mqttConnectionString = "tcp://localhost:1883";
+        if(this.mqttConnectionString.isEmpty()) {
+            this.mqttConnectionString = "tcp://localhost:1883";
         }
-        if(clientId.isEmpty()){
-            clientId = "building_controller_client";
+        if(this.clientID.isEmpty()){
+            this.clientID = "building_controller_client";
         }
     }
 
