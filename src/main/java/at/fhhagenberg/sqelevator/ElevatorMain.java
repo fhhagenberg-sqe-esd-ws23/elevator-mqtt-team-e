@@ -49,8 +49,8 @@ public class ElevatorMain implements MqttCallback {
     private BuildingStorage building;
 
 
-    public BuildingStorage setBuilding(int floor, int elev) {
-        return this.building = new BuildingStorage(floor, elev);
+    public void setBuilding(int floor, int elev) {
+        this.building = new BuildingStorage(floor, elev);
     }
     public BuildingStorage getBuilding(){
         return this.building;

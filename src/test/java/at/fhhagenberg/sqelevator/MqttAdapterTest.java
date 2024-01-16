@@ -17,14 +17,9 @@ import java.rmi.RemoteException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class MqttAdapterTest {
-
-    @Mock
-    BuildingStatus mockBuildingStatus;
 
     @BeforeEach
     void setUp() throws RemoteException {
