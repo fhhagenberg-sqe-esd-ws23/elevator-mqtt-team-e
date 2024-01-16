@@ -20,12 +20,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 // NOT DONE!!!!
-class ElevatorMainTest {
+class ElevatorAlgoTest {
 
     @Mock
     private MqttWrapper mockMqttClient;
     @Mock
-    private ElevatorMain mockElevatorMain;
+    private ElevatorAlgo mockElevatorAlgo;
 
     @BeforeEach
     void setUp() throws RemoteException {
@@ -34,12 +34,12 @@ class ElevatorMainTest {
 
     @Test
     void testConstructor() {
-        ElevatorMain elMain0 = new ElevatorMain("", "");
+        ElevatorAlgo elMain0 = new ElevatorAlgo("", "");
         assertNotNull(elMain0);
         assertEquals("tcp://localhost:1883", elMain0.getMqttConnectionString());
         assertEquals("building_controller_client", elMain0.getClientID());
 
-        ElevatorMain elMain1 = new ElevatorMain("test1", "test2");
+        ElevatorAlgo elMain1 = new ElevatorAlgo("test1", "test2");
         assertNotNull(elMain1);
         assertEquals("test1", elMain1.getMqttConnectionString());
         assertEquals("test2", elMain1.getClientID());
@@ -50,16 +50,16 @@ class ElevatorMainTest {
 
         doNothing().when(mockMqttClient).subscribe(anyString());
 
-        when(mockElevatorMain.getMQTTClient()).thenReturn(mockMqttClient);
+        when(mockElevatorAlgo.getMQTTClient()).thenReturn(mockMqttClient);
 
-        mockElevatorMain.init();
-        verify(mockElevatorMain).init();
+        mockElevatorAlgo.init();
+        verify(mockElevatorAlgo).init();
 
     }
 
     @Test
     void testMessageArrivedInit() throws Exception {
-        ElevatorMain elMain = new ElevatorMain("", "");
+        ElevatorAlgo elMain = new ElevatorAlgo("", "");
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
@@ -80,7 +80,7 @@ class ElevatorMainTest {
 
     @Test
     void testMessageArrivedDepth3() throws Exception {
-        ElevatorMain elMain = new ElevatorMain("", "");
+        ElevatorAlgo elMain = new ElevatorAlgo("", "");
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
@@ -118,7 +118,7 @@ class ElevatorMainTest {
 
     @Test
     void testMessageArrivedDepth4() throws Exception {
-        ElevatorMain elMain = new ElevatorMain("", "");
+        ElevatorAlgo elMain = new ElevatorAlgo("", "");
 
         String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
 
@@ -232,7 +232,7 @@ class ElevatorMainTest {
 
     @Test
     void testCoverage() {
-        ElevatorMain elMain = new ElevatorMain("", "");
+        ElevatorAlgo elMain = new ElevatorAlgo("", "");
 
         elMain.disconnected(new MqttDisconnectResponse(new MqttException(MqttException.REASON_CODE_DUPLICATE_PROPERTY)));
         elMain.mqttErrorOccurred(new MqttException(MqttException.REASON_CODE_DUPLICATE_PROPERTY));

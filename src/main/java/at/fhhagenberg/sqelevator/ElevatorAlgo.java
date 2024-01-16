@@ -15,8 +15,8 @@ import java.util.logging.Level;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 // MQTT to Algo
-public class ElevatorMain implements MqttCallback {
-    private static final Logger LOGGER = Logger.getLogger(ElevatorMain.class.getName());
+public class ElevatorAlgo implements MqttCallback {
+    private static final Logger LOGGER = Logger.getLogger(ElevatorAlgo.class.getName());
     private MqttWrapper mqttWrapper;
 
     public MqttWrapper getMqttWrapper(){
@@ -74,19 +74,7 @@ public class ElevatorMain implements MqttCallback {
         return clientID;
     }
 
-    // Main
-    public static void main(String[] args) {
-
-        ElevatorMain elevatorMain = new ElevatorMain("", "");
-        elevatorMain.init();
-        MqttAdapter rmiMqttAdapter = new MqttAdapter("","", "");
-        rmiMqttAdapter.init();
-
-        rmiMqttAdapter.startRMIPolling();
-        elevatorMain.runSim();
-    }
-
-    public ElevatorMain(String mqtt, String clientId) {
+    public ElevatorAlgo(String mqtt, String clientId) {
         this.mqttConnectionString = mqtt;
         this.clientID = clientId;
 
