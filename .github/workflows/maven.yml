@@ -31,7 +31,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: mvn -B package --file pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fhhagenberg-sqe-esd-ws23_elevator-mqtt-team-e --batch-mode --update-snapshots
+      run: mvn -B package --batch-mode --update-snapshots --file pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fhhagenberg-sqe-esd-ws23_elevator-mqtt-team-e
     - run: mkdir staging && cp target/*.jar staging
     - uses: actions/upload-artifact@v3
       with:
