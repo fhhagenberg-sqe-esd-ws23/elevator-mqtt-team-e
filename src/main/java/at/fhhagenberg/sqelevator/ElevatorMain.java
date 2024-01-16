@@ -39,6 +39,14 @@ public class ElevatorMain implements MqttCallback {
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private int numberOfFloors;
     private int numberOfElevators;
+    private boolean isRunning = true;
+    public void setIsRunning(boolean val){
+        this.isRunning = val;
+    }
+    public boolean getIsRunning(){
+        return this.isRunning;
+    }
+
     private ElevatorState[] state;
 
     public enum ElevatorState {
@@ -102,7 +110,7 @@ public class ElevatorMain implements MqttCallback {
     public void runElevatorBigBrain(int elevator){
         final int sleepTime = 10;
 
-        while (true) {
+        while (isRunning) {
             switch (state[elevator]) {
                 case UP:
                     state[elevator] = moveElevatorUp(elevator, sleepTime);
@@ -132,7 +140,7 @@ public class ElevatorMain implements MqttCallback {
         return tmpState;
     }
 
-    private ElevatorState moveElevatorDown(int elevator, int sleepTime) {
+    public ElevatorState moveElevatorDown(int elevator, int sleepTime) {
         ElevatorState tmpState = ElevatorState.DOWN;
         int nextFloor = getNextFloor(elevator,false);
 

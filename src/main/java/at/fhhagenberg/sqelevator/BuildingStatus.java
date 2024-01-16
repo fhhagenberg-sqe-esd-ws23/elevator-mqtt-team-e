@@ -12,19 +12,46 @@ import java.rmi.RemoteException;
 public class BuildingStatus {
 
     private final MqttWrapper client;
+    public MqttWrapper getMqttClient(){
+        return this.client;
+    }
     private IElevator elevatorController;
+    public void setElevatorController(IElevator elevator){
+        this.elevatorController = elevator;
+    }
+    public IElevator getElevatorController(){
+        return this.elevatorController;
+    }
     public volatile boolean rmiConnected;
     private String rmiConnectionString;
+    public String getRmiConnectionString(){
+        return this.rmiConnectionString;
+    }
     private ElevatorStatus[] elevators;
-    public boolean upToDate;
+    public void setElevators(ElevatorStatus[] elevators) {
+        this.elevators = elevators;
+    }
+    public ElevatorStatus[] getElevators() {
+        return elevators;
+    }
+
+    private boolean upToDate;
+    public void setUpToDate(boolean upToDate){
+        this.upToDate = upToDate;
+    }
     private static final String TOPIC_ELEVATOR_NUM = "NumberElevators/";
     private static final String TOPIC_FLOOR_NUM = "NumberFloors/";
     private boolean[] buttonPressedUp;
+    public boolean[] getButtonPressedUp(){
+        return this.buttonPressedUp;
+    }
     private boolean[] buttonPressedDown;
+    public boolean[] getButtonPressedDown(){
+        return this.buttonPressedDown;
+    }
 
     public BuildingStatus(MqttWrapper client, String rmiConnectionString) {
         this.rmiConnectionString = rmiConnectionString;
-
         this.client = client;
     }
 
@@ -75,7 +102,6 @@ public class BuildingStatus {
                 upToDate = false;
             } catch (RemoteException | MalformedURLException | NotBoundException e) {
                 rmiConnected = false;
-                System.out.println("test");
             }
         } while(!rmiConnected);
     }
@@ -98,7 +124,7 @@ public class BuildingStatus {
             for(int i = 0; i < elevatorController.getFloorNum(); i++)
             {
                 boolean newButtonUp = elevatorController.getFloorButtonUp(i);
-                boolean newButtonDown = elevatorController.getFloorButtonUp(i);
+                boolean newButtonDown = elevatorController.getFloorButtonDown(i);
                 if(newButtonUp != buttonPressedUp[i] || !upToDate){
                     buttonPressedUp[i] = newButtonUp;
                     client.publishMQTTMessage("FloorButtonUp/" + i + "/", Boolean.toString(buttonPressedUp[i]));
