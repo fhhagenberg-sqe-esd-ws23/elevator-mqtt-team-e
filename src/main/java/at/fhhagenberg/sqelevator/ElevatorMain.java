@@ -18,6 +18,11 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 public class ElevatorMain implements MqttCallback {
     private static final Logger LOGGER = Logger.getLogger(ElevatorMain.class.getName());
     private MqttWrapper mqttWrapper;
+
+    public MqttWrapper getMqttWrapper(){
+        return this.mqttWrapper;
+    }
+
     private volatile boolean isNumberOfElevatorsInitialised = false;
     private volatile boolean isNumberOfFloorsInitialised = false;
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
@@ -35,9 +40,19 @@ public class ElevatorMain implements MqttCallback {
     }
     public BuildingStorage building;
 
-    private String mqttConnectionString;
-    private String clientID;
+    public BuildingStorage getBuilding(){
+        return this.building;
+    }
 
+    private String mqttConnectionString;
+
+    public String getMqttConnectionString(){
+        return mqttConnectionString;
+    }
+    private String clientID;
+    public String getClientID(){
+        return mqttConnectionString;
+    }
 
     // Main
     public static void main(String[] args) {
