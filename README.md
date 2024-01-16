@@ -1,3 +1,22 @@
+# Test Concept for Elevator Controller
+
+## Overview:
+Our test concept for the Elevator Controller is designed to ensure high quality and reliability of the system. We employ a combination of Whitebox Testing and Mutation Testing to comprehensively assess our code.
+
+## Whitebox Testing with JUnit:
+Whitebox Testing, also known as structural testing, involves testing the internal structures or workings of the Elevator Controller. By using JUnit, a popular unit testing framework for Java, we are able to create and execute tests that cover various scenarios and edge cases. This approach allows us to verify the functionality of individual units of code in a controlled environment.
+
+## Mocking Dependencies with Mockito:
+To isolate the units of code during testing, we use Mockito, a mocking framework for Java. Mockito enables us to create mock objects for the Elevator Controller's dependencies. This is crucial for unit testing as it allows us to test each part of the code in isolation from others, ensuring that tests are not affected by external factors such as database connections or network access.
+
+## Mutation Testing:
+In addition to Whitebox Testing, we implement Mutation Testing to further evaluate the quality and effectiveness of our unit tests. Mutation Testing involves making small changes (mutations) to the code and then running the tests to see if they detect and fail due to these mutations. This method helps us identify weaknesses in our test suite, ensuring that our tests are robust and capable of catching potential bugs.
+
+## Conclusion:
+The combination of detailed Whitebox Testing, dependency isolation through Mockito, and the rigorous assessment provided by Mutation Testing forms a comprehensive and effective test strategy for our Elevator Controller. This approach ensures that our system is not only functioning as intended but is also resilient against future changes and potential errors.
+
+***
+
 # Elevator Control System MQTT Topics
 
 This document provides an overview and description of the MQTT topics used by the Elevator Control System. The system is designed to communicate various aspects of the elevator's status and control commands through these topics.
