@@ -72,6 +72,7 @@ public class ElevatorMain implements MqttCallback {
         ElevatorMain elevatorMain = new ElevatorMain("", "");
         elevatorMain.init();
         MqttAdapter rmiMqttAdapter = new MqttAdapter("","", "");
+        rmiMqttAdapter.init();
 
         rmiMqttAdapter.startRMIPolling();
         elevatorMain.runSim();

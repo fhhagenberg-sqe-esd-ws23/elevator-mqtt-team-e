@@ -14,22 +14,60 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MqttAdapter implements MqttCallback {
-    private final MqttWrapper mqttWrapper;
+    private MqttWrapper mqttWrapper;
     private static final int POLLING_INTERVAL = 250;
     private static final String CONTROLLER_TOPIC_MAIN = "ElevatorControllerMain/";
     private static final String CONTROLLER_TOPIC_RMI = "ElevatorControllerRMI/";
-    private final BuildingStatus buildingStatus;
+    private BuildingStatus buildingStatus;
+
+    public void setBuildingStatus(BuildingStatus b) {
+        this.buildingStatus = b;
+    }
+
     private static final Logger LOGGER = Logger.getLogger(MqttAdapter.class.getName());
 
     private boolean initDone;
 
+    public boolean isInitDone(){
+        return initDone;
+    }
+
+    private String rmiConnectionString;
+    public String getRmiConnectionString(){
+        return rmiConnectionString;
+    }
+    private String mqttConnectionString;
+
+    public String getMqttConnectionString(){
+        return mqttConnectionString;
+    }
+    private String clientID;
+    public String getClientID(){
+        return clientID;
+    }
+
     public MqttAdapter(String rmiConnectionString, String mqttConnectionString, String clientId) {
+        this.rmiConnectionString = rmiConnectionString;
+        this.mqttConnectionString = mqttConnectionString;
+        this.clientID = clientId;
+        if(this.mqttConnectionString.isEmpty()) {
+            this.mqttConnectionString = "tcp://localhost:1883";
+        }
+        if(this.clientID.isEmpty()){
+            this.clientID = "mqttAdapter";
+        }
+        if(this.rmiConnectionString.isEmpty()) {
+            this.rmiConnectionString = "rmi://localhost/ElevatorSim";
+        }
+    }
+
+    public void init() {
         initDone = false;
 
-        mqttWrapper = getMQTTClient(mqttConnectionString, clientId);
+        mqttWrapper = getMQTTClient(this.mqttConnectionString, this.clientID);
         mqttWrapper.publishMQTTMessage("Connect", "RMI Connection established.");
 
-        buildingStatus = new BuildingStatus(mqttWrapper, rmiConnectionString);
+        buildingStatus = new BuildingStatus(mqttWrapper, this.rmiConnectionString);
         buildingStatus.connectRMI();
 
         buildingStatus.init();
@@ -38,13 +76,6 @@ public class MqttAdapter implements MqttCallback {
     }
 
     protected MqttWrapper getMQTTClient(String mqttConnectionString, String clientId) {
-        if(mqttConnectionString.isEmpty()) {
-            mqttConnectionString = "tcp://localhost:1883";
-        }
-        if(clientId.isEmpty()){
-            clientId = "mqttAdapter";
-        }
-
         return new MqttWrapper(mqttConnectionString, clientId, CONTROLLER_TOPIC_RMI, this);  // URI, ClientId, Persistence
     }
 

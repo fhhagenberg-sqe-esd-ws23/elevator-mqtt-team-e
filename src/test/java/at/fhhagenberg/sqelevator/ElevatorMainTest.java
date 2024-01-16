@@ -1,6 +1,13 @@
 package at.fhhagenberg.sqelevator;
 
+import org.eclipse.paho.mqttv5.client.IMqttToken;
+import org.eclipse.paho.mqttv5.client.MqttActionListener;
+import org.eclipse.paho.mqttv5.client.MqttClientInterface;
+import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
+import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
+import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.eclipse.paho.mqttv5.common.packet.MqttWireMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -18,7 +25,7 @@ class ElevatorMainTest {
     @Mock
     private MqttWrapper mockMqttClient;
     @Mock
-    private ElevatorMain ElevatorMain;
+    private ElevatorMain mockElevatorMain;
 
     @BeforeEach
     void setUp() throws RemoteException {
@@ -40,11 +47,14 @@ class ElevatorMainTest {
 
     @Test
     void testInit() {
-        doNothing().when(mockMqttClient).subscribe(anyString());
-        when(ElevatorMain.getMQTTClient()).thenReturn(mockMqttClient);
 
-        ElevatorMain.init();
-        verify(ElevatorMain).init();
+        doNothing().when(mockMqttClient).subscribe(anyString());
+
+        when(mockElevatorMain.getMQTTClient()).thenReturn(mockMqttClient);
+
+        mockElevatorMain.init();
+        verify(mockElevatorMain).init();
+
     }
 
     @Test
@@ -93,7 +103,6 @@ class ElevatorMainTest {
         msg = new MqttMessage("1".getBytes());
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/position/", msg);
 
-
         msg = new MqttMessage("1".getBytes());
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/target/", msg);
         assertEquals(1, elMain.getBuilding().getTargetFloor(0));
@@ -121,5 +130,117 @@ class ElevatorMainTest {
         msg = new MqttMessage("true".getBytes());
         elMain.messageArrived(CONTROLLER_TOPIC_RMI + "0/FloorButton/0", msg);
         assertTrue(elMain.getBuilding().getFloorButtonStatus(0)[0]);
+    }
+
+    public class MqttTokenImpl implements IMqttToken {
+
+        @Override
+        public void waitForCompletion() throws MqttException {
+
+        }
+
+        @Override
+        public void waitForCompletion(long l) throws MqttException {
+
+        }
+
+        @Override
+        public boolean isComplete() {
+            return false;
+        }
+
+        @Override
+        public MqttException getException() {
+            return null;
+        }
+
+        @Override
+        public void setActionCallback(MqttActionListener mqttActionListener) {
+
+        }
+
+        @Override
+        public MqttActionListener getActionCallback() {
+            return null;
+        }
+
+        @Override
+        public MqttClientInterface getClient() {
+            return null;
+        }
+
+        @Override
+        public String[] getTopics() {
+            return new String[0];
+        }
+
+        @Override
+        public void setUserContext(Object o) {
+
+        }
+
+        @Override
+        public Object getUserContext() {
+            return null;
+        }
+
+        @Override
+        public int getMessageId() {
+            return 0;
+        }
+
+        @Override
+        public int[] getGrantedQos() {
+            return new int[0];
+        }
+
+        @Override
+        public int[] getReasonCodes() {
+            return new int[0];
+        }
+
+        @Override
+        public boolean getSessionPresent() {
+            return false;
+        }
+
+        @Override
+        public MqttWireMessage getResponse() {
+            return null;
+        }
+
+        @Override
+        public MqttProperties getResponseProperties() {
+            return null;
+        }
+
+        @Override
+        public MqttMessage getMessage() throws MqttException {
+            return null;
+        }
+
+        @Override
+        public MqttWireMessage getRequestMessage() {
+            return null;
+        }
+
+        @Override
+        public MqttProperties getRequestProperties() {
+            return null;
+        }
+    }
+
+    @Test
+    void testCoverage() {
+        ElevatorMain elMain = new ElevatorMain("", "");
+
+        elMain.disconnected(new MqttDisconnectResponse(new MqttException(MqttException.REASON_CODE_DUPLICATE_PROPERTY)));
+        elMain.mqttErrorOccurred(new MqttException(MqttException.REASON_CODE_DUPLICATE_PROPERTY));
+
+        elMain.deliveryComplete(new MqttTokenImpl());
+
+        elMain.connectComplete(true, "");
+
+        elMain.authPacketArrived(1, new MqttProperties());
     }
 }

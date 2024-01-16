@@ -24,9 +24,6 @@ public class BuildingStatus {
 
     public BuildingStatus(MqttWrapper client, String rmiConnectionString) {
         this.rmiConnectionString = rmiConnectionString;
-        if(rmiConnectionString.isEmpty()) {
-            this.rmiConnectionString = "rmi://localhost/ElevatorSim";
-        }
 
         this.client = client;
     }
